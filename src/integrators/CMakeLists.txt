@@ -10,5 +10,7 @@ add_plugin(volpath  volpath.cpp)
 add_plugin(volpathmis volpathmis.cpp)
 add_plugin(pathreparam     path-reparam.cpp)
 
+add_plugin(ao      ao.cpp)
+
 # Register the test directory
 add_tests(${CMAKE_CURRENT_SOURCE_DIR}/tests)
