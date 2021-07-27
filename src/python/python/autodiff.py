@@ -408,6 +408,7 @@ def render_torch(scene, params=None, **kwargs):
                     sensor_index = 0
                     unbiased = True
                     malloc_trim = False
+                    pre_render_callback = None
 
                     ctx.inputs = [None, None]
                     for k, v in args.items():
@@ -419,6 +420,8 @@ def render_torch(scene, params=None, **kwargs):
                             unbiased = v
                         elif k == 'malloc_trim':
                             malloc_trim = v
+                        elif k == 'pre_render_callback':
+                            pre_render_callback = v
                         elif params is not None:
                             params[k] = type(params[k])(v)
                             ctx.inputs.append(None)

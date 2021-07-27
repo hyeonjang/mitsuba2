@@ -178,7 +178,6 @@ MTS_VARIANT void Scene<Float, Spectrum>::accel_init_gpu(const Properties &/*prop
 #else
     pipeline_link_options.debugLevel             = OPTIX_COMPILE_DEBUG_LEVEL_NONE;
 #endif
-    pipeline_link_options.overrideUsesMotionBlur = false;
     rt_check_log(optixPipelineCreate(
         s.context,
         &pipeline_compile_options,
@@ -262,7 +261,6 @@ MTS_VARIANT void Scene<Float, Spectrum>::accel_parameters_changed_gpu() {
 
     if (m_shapes.empty())
         return;
-
     // ----------------------------------------
     //  Build GAS for meshes and custom shapes
     // ----------------------------------------
@@ -407,6 +405,7 @@ MTS_VARIANT void Scene<Float, Spectrum>::accel_parameters_changed_gpu() {
         ));
 
         cuda_free((void*)d_temp_buffer);
+        cuda_free(d_instances);
     }
 }
 
@@ -429,6 +428,58 @@ MTS_VARIANT void Scene<Float, Spectrum>::accel_release_gpu() {
     m_accel = nullptr;
 }
 
+
+/// Helper function to launch the OptiX kernel (try twice if unsuccessful)
+void launch_optix_kernel(const OptixState &s,
+                         const OptixParams &params,
+                         size_t ray_count) {
+
+    cuda_memcpy_to_device(s.params, &params, sizeof(OptixParams));
+
+    unsigned int width = 1, height = (unsigned int) ray_count;
+    while (!(height & 1) && width < height) {
+        width <<= 1;
+        height >>= 1;
+    }
+
+    OptixResult rt = optixLaunch(
+        s.pipeline,
+        0, // default cuda stream
+        (CUdeviceptr)s.params,
+        sizeof(OptixParams),
+        &s.sbt,
+        (unsigned int) width,
+        (unsigned int) height,
+        1u // depth
+    );
+    if (rt == OPTIX_ERROR_HOST_OUT_OF_MEMORY) {
+        cuda_malloc_trim();
+        rt = optixLaunch(
+            s.pipeline,
+            0, // default cuda stream
+            (CUdeviceptr)s.params,
+            sizeof(OptixParams),
+            &s.sbt,
+            (unsigned int) width,
+            (unsigned int) height,
+            1u // depth
+        );
+    }
+
+    rt_check(rt);
+}
+
+/// Helper function to bind CUDAArray data pointer to fields in the OptixParams struct
+template <typename T> void bind_data(scalar_t<T> **field, T &value) {
+    if constexpr (is_static_array_v<T>) {
+        for (size_t i = 0; i < array_size_v<T>; ++i)
+            field[i] = value[i].data();
+    } else {
+        *field = value.data();
+    }
+}
+
+
 MTS_VARIANT typename Scene<Float, Spectrum>::SurfaceInteraction3f
 Scene<Float, Spectrum>::ray_intersect_gpu(const Ray3f &ray_, HitComputeMode mode, Mask active) const {
     if constexpr (is_cuda_array_v<Float>) {
@@ -449,7 +500,7 @@ Scene<Float, Spectrum>::ray_intersect_gpu(const Ray3f &ray_, HitComputeMode mode
             si.t = empty<Float>(ray_count);
             si.p = empty<Point3f>(ray_count);
             si.uv = empty<Point2f>(ray_count);
-            si.prim_index = empty<UInt32>(ray_count);
+            si.prim_index = zero<UInt32>(ray_count);
             si.shape = empty<ShapePtr>(ray_count);
         } else {
             si = empty<SurfaceInteraction3f>(ray_count);
@@ -468,73 +519,40 @@ Scene<Float, Spectrum>::ray_intersect_gpu(const Ray3f &ray_, HitComputeMode mode
 
         cuda_eval();
 
-        const OptixParams params = {
-            // Active mask
-            active.data(),
-            // In: ray origin
-            ray.o.x().data(), ray.o.y().data(), ray.o.z().data(),
-            // In: ray direction
-            ray.d.x().data(), ray.d.y().data(), ray.d.z().data(),
-            // In: ray extents
-            ray.mint.data(), ray.maxt.data(),
-            // Out: Distance along ray
-            si.t.data(),
-            // Out: UV coordinates
-            si.uv.x().data(), si.uv.y().data(),
-            // Out: Geometric normal
-            si.n.x().data(), si.n.y().data(), si.n.z().data(),
-            // Out: Shading normal
-            si.sh_frame.n.x().data(), si.sh_frame.n.y().data(), si.sh_frame.n.z().data(),
-            // Out: Intersection position
-            si.p.x().data(), si.p.y().data(), si.p.z().data(),
-            // Out: Texture space derivative (U)
-            si.dp_du.x().data(), si.dp_du.y().data(), si.dp_du.z().data(),
-            // Out: Texture space derivative (V)
-            si.dp_dv.x().data(), si.dp_dv.y().data(), si.dp_dv.z().data(),
-            // Out: Shape pointer (on host)
-            (unsigned long long*)si.shape.data(),
-            // Out: Primitive index
-            si.prim_index.data(),
-            // Out: Hit flag
-            nullptr,
-            // top_object
-            s.accel,
-            // fill_surface_interaction
-            mode == HitComputeMode::Default
-        };
+        // if (mode==HitComputeMode::Least)
+        //     Log(Info, "[Least] before: %s", si.prim_index);
+        // Log(Info, "active: %s", active);
 
-        cuda_memcpy_to_device(s.params, &params, sizeof(OptixParams));
+        OptixParams params = {};
 
-        unsigned int width = 1, height = (unsigned int) ray_count;
-        while (!(height & 1) && width < height) {
-            width <<= 1;
-            height >>= 1;
-        }
+        bind_data(&params.in_mask, active);
+        bind_data(params.in_o, ray.o);
+        bind_data(params.in_d, ray.d);
+        bind_data(&params.in_mint, ray.mint);
+        bind_data(&params.in_maxt, ray.maxt);
 
-        OptixResult rt = optixLaunch(
-            s.pipeline,
-            0, // default cuda stream
-            (CUdeviceptr)s.params,
-            sizeof(OptixParams),
-            &s.sbt,
-            width,
-            height,
-            1u // depth
-        );
-        if (rt == OPTIX_ERROR_HOST_OUT_OF_MEMORY) {
-            cuda_malloc_trim();
-            rt = optixLaunch(
-                s.pipeline,
-                0, // default cuda stream
-                (CUdeviceptr)s.params,
-                sizeof(OptixParams),
-                &s.sbt,
-                width,
-                (unsigned int) height,
-                1u // depth
-            );
-        }
-        rt_check(rt);
+        bind_data(&params.out_t, si.t);
+        bind_data(params.out_uv, si.uv);
+        bind_data(params.out_ng, si.n);
+        bind_data(params.out_ns, si.sh_frame.n);
+        bind_data(params.out_p, si.p);
+        bind_data(params.out_dp_du, si.dp_du);
+        bind_data(params.out_dp_dv, si.dp_dv);
+        bind_data(&params.out_prim_index, si.prim_index);
+        
+        params.out_shape_ptr = (unsigned long long*)si.shape.data();
+        params.handle = s.accel;
+        params.fill_surface_interaction = mode == HitComputeMode::Default;
+
+        launch_optix_kernel(s, params, ray_count);
+
+        // Log(Info, "param: %s", params.out_prim_index);
+        // Log(Info, "", m_shapes[0]->m_faces_buf);
+        // if (mode==HitComputeMode::Least)
+        // {
+        // if (mode==HitComputeMode::Least)
+        //     Log(Info, "[Least] after: %s", si.prim_index);
+        // // }
 
         si.time = ray.time;
         si.wavelengths = ray.wavelengths;
@@ -578,73 +596,16 @@ Scene<Float, Spectrum>::ray_test_gpu(const Ray3f &ray_, Mask active) const {
 
         cuda_eval();
 
-        const OptixParams params = {
-            // Active mask
-            active.data(),
-            // In: ray origin
-            ray.o.x().data(), ray.o.y().data(), ray.o.z().data(),
-            // In: ray direction
-            ray.d.x().data(), ray.d.y().data(), ray.d.z().data(),
-            // In: ray extents
-            ray.mint.data(), ray.maxt.data(),
-            // Out: Distance along ray
-            nullptr,
-            // Out: UV coordinates
-            nullptr, nullptr,
-            // Out: Geometric normal
-            nullptr, nullptr, nullptr,
-            // Out: Shading normal
-            nullptr, nullptr, nullptr,
-            // Out: Intersection position
-            nullptr, nullptr, nullptr,
-            // Out: Texture space derivative (U)
-            nullptr, nullptr, nullptr,
-            // Out: Texture space derivative (V)
-            nullptr, nullptr, nullptr,
-            // Out: Shape pointer (on host)
-            nullptr,
-            // Out: Primitive index
-            nullptr,
-            // Out: Hit flag
-            hit.data(),
-            // top_object
-            s.accel,
-            // fill_surface_interaction
-            false
-        };
+        OptixParams params = {};
 
-        cuda_memcpy_to_device(s.params, &params, sizeof(OptixParams));
+        bind_data(&params.in_mask, active);
+        bind_data(params.in_o, ray.o);
+        bind_data(params.in_d, ray.d);
+        bind_data(&params.in_mint, ray.mint);
+        bind_data(&params.in_maxt, ray.maxt);
+        bind_data(&params.out_hit, hit);
 
-        unsigned int width = 1, height = (unsigned int) ray_count;
-        while (!(height & 1) && width < height) {
-            width <<= 1;
-            height >>= 1;
-        }
-
-        OptixResult rt = optixLaunch(
-            s.pipeline,
-            0, // default cuda stream
-            (CUdeviceptr)s.params,
-            sizeof(OptixParams),
-            &s.sbt,
-            width,
-            height,
-            1u // depth
-        );
-        if (rt == OPTIX_ERROR_HOST_OUT_OF_MEMORY) {
-            cuda_malloc_trim();
-            rt = optixLaunch(
-                s.pipeline,
-                0, // default cuda stream
-                (CUdeviceptr)s.params,
-                sizeof(OptixParams),
-                &s.sbt,
-                width,
-                height,
-                1u // depth
-            );
-        }
-        rt_check(rt);
+        launch_optix_kernel(s, params, ray_count);
 
         return hit;
     } else {
@@ -654,4 +615,4 @@ Scene<Float, Spectrum>::ray_test_gpu(const Ray3f &ray_, Mask active) const {
     }
 }
 
-NAMESPACE_END(msiuba)
+NAMESPACE_END(mitsuba)

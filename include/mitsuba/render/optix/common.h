@@ -15,18 +15,19 @@ struct OptixHitGroupData {
 /// Launch-varying parameters
 struct OptixParams {
     bool    *in_mask;
-    float   *in_ox, *in_oy, *in_oz,
-            *in_dx, *in_dy, *in_dz,
+    float   *in_o[3],
+            *in_d[3],
             *in_mint, *in_maxt;
-    float   *out_t, *out_u, *out_v,
-            *out_ng_x, *out_ng_y, *out_ng_z,
-            *out_ns_x, *out_ns_y, *out_ns_z,
-            *out_p_x, *out_p_y, *out_p_z,
-            *out_dp_du_x, *out_dp_du_y, *out_dp_du_z,
-            *out_dp_dv_x, *out_dp_dv_y, *out_dp_dv_z;
+    float   *out_t, 
+            *out_uv[2],
+            *out_ng[3],
+            *out_ns[3],
+            *out_p[3],
+            *out_dp_du[3],
+            *out_dp_dv[3];
 
     unsigned long long *out_shape_ptr;
-    unsigned int *out_primitive_id;
+    unsigned int *out_prim_index;
 
     bool *out_hit;
 
@@ -54,32 +55,32 @@ __device__ void write_output_params(OptixParams &params,
                                     float t) {
 
     params.out_shape_ptr[launch_index] = shape_ptr;
-    params.out_primitive_id[launch_index] = prim_id;
+    params.out_prim_index[launch_index] = prim_id;
 
-    params.out_u[launch_index] = uv.x();
-    params.out_v[launch_index] = uv.y();
+    params.out_uv[0][launch_index] = uv.x();
+    params.out_uv[1][launch_index] = uv.y();
 
-    params.out_p_x[launch_index] = p.x();
-    params.out_p_y[launch_index] = p.y();
-    params.out_p_z[launch_index] = p.z();
+    params.out_p[0][launch_index] = p.x();
+    params.out_p[1][launch_index] = p.y();
+    params.out_p[2][launch_index] = p.z();
 
     if (params.fill_surface_interaction) {
-        params.out_ng_x[launch_index] = ng.x();
-        params.out_ng_y[launch_index] = ng.y();
-        params.out_ng_z[launch_index] = ng.z();
+        params.out_ng[0][launch_index] = ng.x();
+        params.out_ng[1][launch_index] = ng.y();
+        params.out_ng[2][launch_index] = ng.z();
 
-        params.out_ns_x[launch_index] = ns.x();
-        params.out_ns_y[launch_index] = ns.y();
-        params.out_ns_z[launch_index] = ns.z();
+        params.out_ns[0][launch_index] = ns.x();
+        params.out_ns[1][launch_index] = ns.y();
+        params.out_ns[2][launch_index] = ns.z();
 
 
-        params.out_dp_du_x[launch_index] = dp_du.x();
-        params.out_dp_du_y[launch_index] = dp_du.y();
-        params.out_dp_du_z[launch_index] = dp_du.z();
+        params.out_dp_du[0][launch_index] = dp_du.x();
+        params.out_dp_du[1][launch_index] = dp_du.y();
+        params.out_dp_du[2][launch_index] = dp_du.z();
 
-        params.out_dp_dv_x[launch_index] = dp_dv.x();
-        params.out_dp_dv_y[launch_index] = dp_dv.y();
-        params.out_dp_dv_z[launch_index] = dp_dv.z();
+        params.out_dp_dv[0][launch_index] = dp_dv.x();
+        params.out_dp_dv[1][launch_index] = dp_dv.y();
+        params.out_dp_dv[2][launch_index] = dp_dv.z();
     }
 
     params.out_t[launch_index] = t;

@@ -212,6 +212,10 @@ scene_template_dict = {
 }
 
 
+@pytest.fixture
+def variant_gpu_autodiff_rgb():
+    return mitsuba.set_variant('gpu_autodiff_rgb')
+
 # ----------------
 # Tests
 
@@ -241,30 +245,30 @@ scene_template_dict = {
 #     check_finite_difference("light_position", make_scene, get_diff_param)
 
 
-# @pytest.mark.slow
-# def test02_object_position(variant_gpu_autodiff_rgb):
-#     from mitsuba.core import Float, Transform4f, ScalarTransform4f, ScalarVector3f, xml
-#     from mitsuba.python.util import traverse
+@pytest.mark.slow
+def test02_object_position(variant_gpu_autodiff_rgb):
+    from mitsuba.core import Float, Transform4f, ScalarTransform4f, ScalarVector3f, xml
+    from mitsuba.python.util import traverse
 
-#     if ek.cuda_mem_get_info()[1] < int(1e9):
-#         pytest.skip('Insufficient GPU memory')
+    if ek.cuda_mem_get_info()[1] < int(1e9):
+        pytest.skip('Insufficient GPU memory')
 
-#     @fresolver_append_path
-#     def make_scene(integrator, spp, param):
-#         scene_dict = dict(scene_template_dict)
-#         scene_dict["integrator"] = integrator
-#         scene_dict["sensor"]["sampler"]["sample_count"] = spp
-#         scene_dict["object"]["to_world"] = ScalarTransform4f.translate(ScalarVector3f(0, 0, 1) + param)
-#         return xml.load_dict(scene_dict)
+    @fresolver_append_path
+    def make_scene(integrator, spp, param):
+        scene_dict = dict(scene_template_dict)
+        scene_dict["integrator"] = integrator
+        scene_dict["sensor"]["sampler"]["sample_count"] = spp
+        scene_dict["object"]["to_world"] = ScalarTransform4f.translate(ScalarVector3f(0, 0, 1) + param)
+        return xml.load_dict(scene_dict)
 
-#     def get_diff_param(scene):
-#         diff_param = Float(0.0)
-#         ek.set_requires_gradient(diff_param)
-#         diff_trafo = Transform4f.translate(diff_param)
-#         update_vertex_buffer(scene, 'object', diff_trafo)
-#         return diff_param
+    def get_diff_param(scene):
+        diff_param = Float(0.0)
+        ek.set_requires_gradient(diff_param)
+        diff_trafo = Transform4f.translate(diff_param)
+        update_vertex_buffer(scene, 'object', diff_trafo)
+        return diff_param
 
-#     check_finite_difference("object_position", make_scene, get_diff_param)
+    check_finite_difference("object_position", make_scene, get_diff_param)
 
 
 # @pytest.mark.slow
@@ -319,75 +323,75 @@ scene_template_dict = {
 #     check_finite_difference("object_scaling", make_scene, get_diff_param)
 
 
-@pytest.mark.slow
-def test05_glossy_reflection(variant_gpu_autodiff_rgb):
-    from mitsuba.core import Float, Transform4f, ScalarTransform4f, ScalarVector3f, xml
-    from mitsuba.python.util import traverse
+# @pytest.mark.slow
+# def test05_glossy_reflection(variant_gpu_autodiff_rgb):
+#     from mitsuba.core import Float, Transform4f, ScalarTransform4f, ScalarVector3f, xml
+#     from mitsuba.python.util import traverse
 
-    if ek.cuda_mem_get_info()[1] < int(1e9):
-        pytest.skip('Insufficient GPU memory')
+#     if ek.cuda_mem_get_info()[1] < int(1e9):
+#         pytest.skip('Insufficient GPU memory')
 
-    @fresolver_append_path
-    def make_scene(integrator, spp, param):
-        scene_dict = dict(scene_template_dict)
-        scene_dict["integrator"] = integrator
-        scene_dict["integrator"]["max_depth"] = 3
-        scene_dict["sensor"]["sampler"]["sample_count"] = spp
-        scene_dict["sensor"]["fov"] = 15
-        scene_dict["planemesh"]["bsdf"] = { "type" : "roughconductor", "alpha" : 0.05 }
-        scene_dict["planemesh"]["filename"] = "resources/data/obj/xy_plane_rough.obj"
-        scene_dict["planemesh"]["to_world"] = ScalarTransform4f.rotate([1, 0, 0], -25)
-        scene_dict["object"]["to_world"] = ScalarTransform4f.translate(ScalarVector3f(0, 0.6, 1) + param)
-        return xml.load_dict(scene_dict)
+#     @fresolver_append_path
+#     def make_scene(integrator, spp, param):
+#         scene_dict = dict(scene_template_dict)
+#         scene_dict["integrator"] = integrator
+#         scene_dict["integrator"]["max_depth"] = 3
+#         scene_dict["sensor"]["sampler"]["sample_count"] = spp
+#         scene_dict["sensor"]["fov"] = 15
+#         scene_dict["planemesh"]["bsdf"] = { "type" : "roughconductor", "alpha" : 0.05 }
+#         scene_dict["planemesh"]["filename"] = "resources/data/obj/xy_plane_rough.obj"
+#         scene_dict["planemesh"]["to_world"] = ScalarTransform4f.rotate([1, 0, 0], -25)
+#         scene_dict["object"]["to_world"] = ScalarTransform4f.translate(ScalarVector3f(0, 0.6, 1) + param)
+#         return xml.load_dict(scene_dict)
 
-    def get_diff_param(scene):
-        diff_param = Float(0.0)
-        ek.set_requires_gradient(diff_param)
-        diff_trafo = Transform4f.translate(diff_param)
-        update_vertex_buffer(scene, 'object', diff_trafo)
-        return diff_param
+#     def get_diff_param(scene):
+#         diff_param = Float(0.0)
+#         ek.set_requires_gradient(diff_param)
+#         diff_trafo = Transform4f.translate(diff_param)
+#         update_vertex_buffer(scene, 'object', diff_trafo)
+#         return diff_param
 
-    check_finite_difference("glossy_reflection", make_scene, get_diff_param, diff_passes=16, ref_eps=0.015)
+#     check_finite_difference("glossy_reflection", make_scene, get_diff_param, diff_passes=16, ref_eps=0.015)
 
 
-# TODO fix this test
-@pytest.mark.skip
-@pytest.mark.slow
-def test06_envmap(variant_gpu_autodiff_rgb):
-    from mitsuba.core import Float, Transform4f, ScalarTransform4f, xml
-    from mitsuba.python.util import traverse
+# # TODO fix this test
+# @pytest.mark.skip
+# @pytest.mark.slow
+# def test06_envmap(variant_gpu_autodiff_rgb):
+#     from mitsuba.core import Float, Transform4f, ScalarTransform4f, xml
+#     from mitsuba.python.util import traverse
 
-    if ek.cuda_mem_get_info()[1] < int(1e9):
-        pytest.skip('Insufficient GPU memory')
+#     if ek.cuda_mem_get_info()[1] < int(1e9):
+#         pytest.skip('Insufficient GPU memory')
 
-    @fresolver_append_path
-    def make_scene(integrator, spp, param):
-        scene_dict = dict(scene_template_dict)
-        scene_dict["integrator"] = integrator
-        scene_dict["sensor"]["sampler"]["sample_count"] = spp
-        del scene_dict["light_shape"]
-        scene_dict["envmap"] = {
-            "type" : "envmap",
-            "scale" : 1.0,
-            "filename" : "resources/data/envmap/park.hdr",
-            "to_world" : ScalarTransform4f.rotate([1, 0, 0], 90)
-        }
-        scene_dict["object"]["to_world"] = ScalarTransform4f.translate(param) * scene_dict["object"]["to_world"]
-        return xml.load_dict(scene_dict)
+#     @fresolver_append_path
+#     def make_scene(integrator, spp, param):
+#         scene_dict = dict(scene_template_dict)
+#         scene_dict["integrator"] = integrator
+#         scene_dict["sensor"]["sampler"]["sample_count"] = spp
+#         del scene_dict["light_shape"]
+#         scene_dict["envmap"] = {
+#             "type" : "envmap",
+#             "scale" : 1.0,
+#             "filename" : "resources/data/envmap/park.hdr",
+#             "to_world" : ScalarTransform4f.rotate([1, 0, 0], 90)
+#         }
+#         scene_dict["object"]["to_world"] = ScalarTransform4f.translate(param) * scene_dict["object"]["to_world"]
+#         return xml.load_dict(scene_dict)
 
-    def get_diff_param(scene):
-        diff_param = Float(0.0)
-        ek.set_requires_gradient(diff_param)
-        diff_trafo = Transform4f.translate(diff_param)
-        update_vertex_buffer(scene, 'object', diff_trafo)
-        return diff_param
+#     def get_diff_param(scene):
+#         diff_param = Float(0.0)
+#         ek.set_requires_gradient(diff_param)
+#         diff_trafo = Transform4f.translate(diff_param)
+#         update_vertex_buffer(scene, 'object', diff_trafo)
+#         return diff_param
 
-    diff_integrator = {
-        "type" : "pathreparam",
-        "max_depth" : 2,
-        "kappa_conv_envmap" : 10000000
-    }
+#     diff_integrator = {
+#         "type" : "pathreparam",
+#         "max_depth" : 2,
+#         "kappa_conv_envmap" : 10000000
+#     }
 
-    check_finite_difference("envmap", make_scene, get_diff_param, diff_integrator=diff_integrator, error_threshold=0.1)
+#     check_finite_difference("envmap", make_scene, get_diff_param, diff_integrator=diff_integrator, error_threshold=0.1)
 
 # TODO add tests for area+envmap

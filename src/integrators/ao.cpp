@@ -49,7 +49,7 @@ public:
 
     std::pair<Spectrum, Mask> sample(const Scene *scene,
                                     Sampler *sampler,
-                                    const RayDifferential3f &ray,
+                                    const RayDifferential3f &ray_,
                                     const Medium * /* medium */,
                                     Float * /* aovs */,
                                     Mask active) const override {
@@ -59,7 +59,11 @@ public:
         Float ray_length = m_ray_length;
         if( any_or<true>(ray_length<0) ) ray_length = scene->bbox().bounding_sphere().radius * Float(0.5f);
 
-        SurfaceInteraction3f si = scene->ray_intersect(ray, active);
+        RayDifferential3f ray = ray_;
+
+        // ---------------------- First intersection ----------------------
+
+        SurfaceInteraction3f si = scene->ray_intersect(ray, HitComputeMode::Differentiable, active);
         Mask valid_ray = si.is_valid();
 
         Spectrum result(0.f);
@@ -73,14 +77,14 @@ public:
             active &= si.is_valid();
 
             Ray3f shadow_ray(si.p, d, math::RayEpsilon<Float>, ray_length);
-            SurfaceInteraction3f si_sh = scene->ray_intersect(shadow_ray, active);
+            SurfaceInteraction3f si_sh = scene->ray_intersect(shadow_ray, HitComputeMode::Differentiable, active);
 
             Mask active_sh = neq(si_sh.is_valid(), true);
             result += select(active_sh, Float(1.f), Float(0.f));
         }
         result /= Float(num);
 
-        return { result, active };
+        return { result, valid_ray };
     }
 
     std::string to_string() const override {
@@ -93,7 +97,7 @@ public:
     MTS_DECLARE_CLASS()
 private:
     size_t m_shading_samples;
-    mutable Float m_ray_length;
+    Float m_ray_length;
 };
 
 MTS_IMPLEMENT_CLASS_VARIANT(AOIntegrator, SamplingIntegrator)

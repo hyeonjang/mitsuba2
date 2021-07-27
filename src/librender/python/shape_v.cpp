@@ -83,9 +83,16 @@ MTS_PY_EXPORT(Shape) {
              D(Mesh, faces_buffer), py::return_value_policy::reference_internal)
         .def("attribute_buffer", &Mesh::attribute_buffer, "name"_a,
              D(Mesh, attribute_buffer), py::return_value_policy::reference_internal)
-        .def("add_attribute", &Mesh::add_attribute, "name"_a, "size"_a,
+        .def("add_attribute", &Mesh::add_attribute, "name"_a, "size"_a, "buffer"_a, 
              D(Mesh, add_attribute), py::return_value_policy::reference_internal)
         .def("ray_intersect_triangle", vectorize(&Mesh::ray_intersect_triangle),
              "index"_a, "ray"_a, "active"_a = true,
-             D(Mesh, ray_intersect_triangle));
+             D(Mesh, ray_intersect_triangle))
+
+        .def("resize_vertex_positions_buffer", &Mesh::resize_vertex_positions_buffer, "size"_a)
+        .def_field(Mesh, m_name, D(Mesh, m_name));
+        
+        // h - danger behavior 
+        //.def_field(Mesh, m_vertex_positions_buf, D(Mesh, m_vertex_positions_buf))
+        //.def_field(Mesh, m_faces_buf, D(Mesh, m_faces_buf))
 }

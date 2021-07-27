@@ -9,14 +9,18 @@
 extern "C" __global__ void __raygen__rg() {
     unsigned int launch_index = calculate_launch_index();
 
-    Vector3f ro = Vector3f(params.in_ox[launch_index],
-                           params.in_oy[launch_index],
-                           params.in_oz[launch_index]),
-             rd = Vector3f(params.in_dx[launch_index],
-                           params.in_dy[launch_index],
-                           params.in_dz[launch_index]);
+    Vector3f ro = Vector3f(params.in_o[0][launch_index],
+                           params.in_o[1][launch_index],
+                           params.in_o[2][launch_index]),
+             rd = Vector3f(params.in_d[0][launch_index],
+                           params.in_d[1][launch_index],
+                           params.in_d[2][launch_index]);
     float mint = params.in_mint[launch_index],
           maxt = params.in_maxt[launch_index];
+
+    // Replace inf with very large float value as it isn't supported by Optix
+    if (maxt == CUDART_INF_F)
+        maxt = CUDART_MAX_NORMAL_F;
 
     if (params.out_hit != nullptr) {
         if (!params.in_mask[launch_index]) {

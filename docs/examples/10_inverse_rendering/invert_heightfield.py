@@ -10,6 +10,9 @@ from mitsuba.render import SurfaceInteraction3f
 from mitsuba.python.util import traverse
 from mitsuba.python.autodiff import render, write_bitmap, Adam
 
+import imageio
+import numpy as np
+
 # Convert flat array into a vector of arrays (will be included in next enoki release)
 def ravel(buf, dim = 3):
     idx = dim * UInt32.arange(ek.slices(buf) // dim)
@@ -65,7 +68,7 @@ def apply_displacement(amplitude = 0.05):
 apply_displacement()
 
 # Render a reference image (no derivatives used yet)
-image_ref = render(scene, spp=32)
+image_ref = render(scene, spp=4)
 crop_size = scene.sensors()[0].film().crop_size()
 write_bitmap(output_path + 'out_ref.exr', image_ref, crop_size)
 print("Write " + output_path + "out_ref.exr")
@@ -86,11 +89,12 @@ for it in range(iterations):
     # Perform a differentiable rendering of the scene
     image = render(scene,
                    optimizer=opt,
-                   spp=4,
+                   spp=2,
                    unbiased=True,
                    pre_render_callback=apply_displacement)
 
     write_bitmap(output_path + 'out_%03i.exr' % it, image, crop_size)
+    write_bitmap(output_path + 'out_texture_%03i.exr' % it, disp_tex_params['data'], (crop_size[1]*2, crop_size[0]))
 
     # Objective: MSE between 'image' and 'image_ref'
     ob_val = ek.hsum(ek.sqr(image - image_ref)) / len(image)

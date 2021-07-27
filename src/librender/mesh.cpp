@@ -275,9 +275,14 @@ MTS_VARIANT void Mesh<Float, Spectrum>::recompute_vertex_normals() {
         auto ni = 3 * arange<UInt32>(m_vertex_count);
         for (size_t i = 0; i < 3; ++i)
             scatter(m_vertex_normals_buf, normals[i], ni + i);
+
+        // std::cout << m_vertex_normals_buf << std::endl;
+        // for (auto& b : m_vertex_normals_buf)
+            // if(b <= 0.f) std::cout << b << std::endl;
     }
 }
 
+// bug
 MTS_VARIANT void Mesh<Float, Spectrum>::recompute_bbox() {
     m_bbox.reset();
     for (ScalarSize i = 0; i < m_vertex_count; ++i)
@@ -285,10 +290,11 @@ MTS_VARIANT void Mesh<Float, Spectrum>::recompute_bbox() {
 }
 
 MTS_VARIANT void Mesh<Float, Spectrum>::area_distr_build() {
+    std::lock_guard<tbb::spin_mutex> lock(m_mutex);
+    
     if (m_face_count == 0)
         Throw("Cannot create sampling table for an empty mesh: %s", to_string());
 
-    std::lock_guard<tbb::spin_mutex> lock(m_mutex);
     // TODO could use manage() as area_distr doesn't need to be differentiable
     if constexpr (!is_dynamic_v<Float>) {
         std::vector<ScalarFloat> table(m_face_count);
@@ -375,6 +381,7 @@ MTS_VARIANT Float Mesh<Float, Spectrum>::pdf_position(const PositionSample3f &, 
 MTS_VARIANT typename Mesh<Float, Spectrum>::Point3f
 Mesh<Float, Spectrum>::barycentric_coordinates(const SurfaceInteraction3f &si,
                                                Mask active) const {
+    // code
     auto fi = face_indices(si.prim_index, active);
 
     Point3f p0 = vertex_position(fi[0], active),
@@ -434,6 +441,7 @@ Mesh<Float, Spectrum>::fill_surface_interaction(const Ray3f &ray,
         }
     }
 
+    // active = true;
     Float b0 = 1.f - b1 - b2;
 
     auto fi = face_indices(si.prim_index, active);
@@ -477,9 +485,9 @@ Mesh<Float, Spectrum>::fill_surface_interaction(const Ray3f &ray,
 
     // Shading normal (if available)
     if (has_vertex_normals()) {
-        Normal3f n0 = vertex_normal(fi[0], active),
-                 n1 = vertex_normal(fi[1], active),
-                 n2 = vertex_normal(fi[2], active);
+        Normal3f n0 = vertex_normal(fi[0]),
+                 n1 = vertex_normal(fi[1]),
+                 n2 = vertex_normal(fi[2]);
 
         n = normalize(n0 * b0 + n1 * b1 + n2 * b2);
     }
@@ -550,30 +558,33 @@ Mesh<Float, Spectrum>::normal_derivative(const SurfaceInteraction3f &si, bool sh
     return { dndu, dndv };
 }
 
-MTS_VARIANT typename Mesh<Float, Spectrum>::FloatStorage&
-Mesh<Float, Spectrum>::add_attribute(const std::string& name, size_t size) {
+MTS_VARIANT void Mesh<Float, Spectrum>::add_attribute(const std::string& name,
+                                                      size_t dim,
+                                                      const FloatStorage& buffer) {
     auto attribute = m_mesh_attributes.find(name);
     if (attribute != m_mesh_attributes.end())
         Throw("add_attribute(): attribute %s already exists.", name.c_str());
 
-    bool is_vertex_attribute = name.find("vertex_") == 0;
-    bool is_face_attribute = name.find("face_") == 0;
-    if (!is_vertex_attribute && !is_face_attribute)
+    bool is_vertex_attr = name.find("vertex_") == 0;
+    bool is_face_attr   = name.find("face_") == 0;
+    if (!is_vertex_attr && !is_face_attr)
         Throw("add_attribute(): attribute name must start with either \"vertex_\" of \"face_\".");
 
-    if (is_vertex_attribute) {
-        auto [it, success] = m_mesh_attributes.insert({
-            name,
-            { size, MeshAttributeType::Vertex, empty<FloatStorage>(m_vertex_count * size) }
-        });
-        return it->second.buf;
-    } else {
-        auto [it, success] = m_mesh_attributes.insert({
-            name,
-            { size, MeshAttributeType::Face, empty<FloatStorage>(m_face_count * size) }
-        });
-        return it->second.buf;
+    MeshAttributeType type = is_vertex_attr ? MeshAttributeType::Vertex : MeshAttributeType::Face;
+
+    // In spectral modes, convert RGB color to srgb model coefs if attribute name contains 'color'
+    if constexpr (is_spectral_v<Spectrum>) {
+        if (dim == 3 && name.find("color") != std::string::npos) {
+            size_t count = is_vertex_attr ? m_vertex_count : m_face_count;
+            InputFloat *ptr = (InputFloat *) buffer.data();
+            for (size_t i = 0; i < count; ++i) {
+                store_unaligned(ptr, srgb_model_fetch(load_unaligned<Color<InputFloat, 3>>(ptr)));
+                ptr += 3;
+            }
+        }
     }
+
+    m_mesh_attributes.insert({ name, { dim, type, buffer } });
 }
 
 MTS_VARIANT typename Mesh<Float, Spectrum>::UnpolarizedSpectrum
@@ -848,20 +859,46 @@ MTS_VARIANT void Mesh<Float, Spectrum>::traverse(TraversalCallback *callback) {
 MTS_VARIANT void Mesh<Float, Spectrum>::parameters_changed(const std::vector<std::string> &keys) {
     if (keys.empty() || string::contains(keys, "vertex_positions_buf")) {
         if constexpr (is_cuda_array_v<Float>) {
+            m_vertex_positions_buf.managed();
             cuda_eval();
             cuda_sync();
         }
 
-        recompute_bbox();
-
         if (has_vertex_normals())
             recompute_vertex_normals();
+        // {
+        //     if constexpr (is_cuda_array_v<Float>) {
+        //         recompute_vertex_normals();
+        //         m_vertex_normals_buf.managed();
+        //         cuda_eval();
+        //         cuda_sync();
+        //     }
+        // }
+        
+        // m_vertex_texcoords_buf.managed();
+        // cuda_eval();
+        // cuda_sync();
 
         area_distr_build();
+
+#if defined(MTS_ENABLE_OPTIX)
+        optix_prepare_geometry();
+#endif
+
         Base::parameters_changed();
     }
 }
 
+MTS_VARIANT void Mesh<Float, Spectrum>::resize_vertex_positions_buffer(size_t size) {
+    
+    m_vertex_count = size;
+    set_slices(m_vertex_positions_buf, size);
+}
+
+MTS_VARIANT void Mesh<Float, Spectrum>::resize_faces_buffer(size_t size) {
+    m_face_count = size;
+    set_slices(m_faces_buf, size);
+}
 
 MTS_IMPLEMENT_CLASS_VARIANT(Mesh, Shape)
 MTS_INSTANTIATE_CLASS(Mesh)

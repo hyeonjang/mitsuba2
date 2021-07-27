@@ -73,7 +73,7 @@ public:
     }
 
     /// Add and return an attribute buffer with the given \c name and \c size
-    FloatStorage& add_attribute(const std::string& name, size_t size);
+    void add_attribute(const std::string& name, size_t size, const FloatStorage& buffer);
 
     /// Returns the face indices associated with triangle \c index
     template <typename Index>
@@ -249,6 +249,10 @@ public:
     size_t vertex_data_bytes() const;
     size_t face_data_bytes() const;
 
+    //
+    void resize_vertex_positions_buffer(size_t size);
+    void resize_faces_buffer(size_t size);
+
 protected:
     Mesh(const Properties &);
     inline Mesh() { m_mesh = true; }
@@ -324,7 +328,7 @@ protected:
         }
     }
 
-protected:
+public:
     std::string m_name;
     ScalarBoundingBox3f m_bbox;
 

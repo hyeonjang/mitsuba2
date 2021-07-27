@@ -266,8 +266,9 @@ MTS_VARIANT void Scene<Float, Spectrum>::parameters_changed(const std::vector<st
     }
 
     if (update_accel) {
-        if constexpr (is_cuda_array_v<Float>)
+        if constexpr (is_cuda_array_v<Float>){
             accel_parameters_changed_gpu();
+        }
         else {
             // TODO update Embree BVH or Mitsuba kdtree if necessary
         }

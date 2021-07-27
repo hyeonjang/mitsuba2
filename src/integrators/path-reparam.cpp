@@ -264,6 +264,8 @@ public:
 
             auto si = scene->ray_intersect(ray, HitComputeMode::Differentiable, active);
 
+            // // 20210723 temploral debugging
+
             Mask valid_ray_pair = si.is_valid();
 
             Mask valid_ray =
@@ -336,11 +338,12 @@ public:
 
                 std::vector<DirectionSample3f> ds_ls(m_dc_light_samples);
                 std::vector<Spectrum> emitter_val_ls(m_dc_light_samples);
-                std::vector<Mask> is_occluded_ls(m_dc_light_samples);
+                std::vector<Mask> is_occluded_ls(m_dc_light_samples); // attention!!
 
                 auto ds_ls_main = emitter_ls->sample_direction(si, samplePair2D(active_e, sampler), active_e).first;
                 Frame<Float> frame_main_ls(ds_ls_main.d);
 
+                // currently occluded not drawing
                 for (size_t ls = 0; ls < m_dc_light_samples; ls++) {
                     std::tie(ds_ls[ls], emitter_val_ls[ls]) =
                         emitter_ls->sample_direction(
@@ -360,13 +363,19 @@ public:
                     }
 
                     Mask active_ls = active_e && neq(ds_ls[ls].pdf, 0.f);
-
+                    #ifdef __CUDACC__
+                    Log(Info, "active_e: %s", active_e);
+                    Log(Info, "ds_ls: %s", neq(ds_ls[ls].pdf, 0.f));
+                    Log(Info, "active_ls: %s", active_ls);
+                    #endif
+                    
                     // Check masking for active rays
                     Ray3f ray_ls(si.p, ds_ls[ls].d, math::RayEpsilon<Float> * (1.f + hmax(abs(si.p))),
                                 ds_ls[ls].dist * (1.f - math::ShadowEpsilon<Float>),
                                 si.time, si.wavelengths);
                     ray_ls.maxt[is_envmap] = math::Infinity<Float>;
 
+                    // wrong occlusion calculation
                     auto si_ls = scene->ray_intersect(ray_ls, HitComputeMode::Least, active_ls);
                     si_ls.compute_differentiable_shape_position(active_ls);
 
@@ -434,6 +443,11 @@ public:
 
                     emitter_val_ls[ls][visible_and_hit] = e_val_reparam;
 
+                    // 20210726
+                    // Log(Info, "eval_reparam %f: \n%s ", ls, emitter_val_ls[ls]);
+                    // Log(Info, "visible:%s ", visible_and_hit);
+                    // Log(Info, "is_occluded_ls %f: \n%s ", ls, is_occluded_ls[ls]);
+
                     if (m_use_convolution_envmap) {
                         // Update emitter pdf for MIS
                         Float pdf_emitter = emitter_ls->pdf_direction(si, ds_ls[ls], is_envmap);
@@ -455,6 +469,10 @@ public:
                     Float mis = select(ds_ls[ls].delta, 1.f, mis_weight(ds_ls[ls].pdf * emitter_pdf, bsdf_pdf));
 
                     contribs_ls[ls] = throughput * emitter_val_ls[ls] / emitter_pdf * bsdf_val * mis;
+                    
+                    // throughput is okay
+                    // Log(Info, "throughput: %s", throughput);
+                    
                 }
 
                 // Accumulate contributions and variance reduction (in pairs of paths)
@@ -654,7 +672,6 @@ public:
 
                 si = std::move(si_bsdf);
             }
-
             return { result, valid_ray };
         } else {
             ENOKI_MARK_USED(scene);
