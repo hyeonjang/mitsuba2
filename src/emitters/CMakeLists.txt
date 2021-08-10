@@ -9,7 +9,6 @@ add_plugin(spot        spot.cpp)
 add_plugin(smootharea  smootharea.cpp)
 
 add_plugin(tiledenvmap tiledenvmap.cpp)
-add_plugin(reflectionmap reflectionmap.cpp)
 
 # Register the test directory
 add_tests(${CMAKE_CURRENT_SOURCE_DIR}/tests)
