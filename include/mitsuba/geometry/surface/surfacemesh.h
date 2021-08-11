@@ -1,29 +1,29 @@
 #pragma once
 
-#include "mitsuba/core/vector.h"
+#include <mitsuba/core/fwd.h>
+#include <mitsuba/geometry/fwd.h>
 
-#include <enoki/array.h>
-#include <enoki/dynamic.h>
+NAMESPACE_BEGIN(mitsuba)
+NAMESPACE_BEGIN(geometry)
 
-using namespace enoki;
-
-namespace mitsuba {
-namespace geometry {
-
-template<typename Float>
-class SurfaceMesh 
-{
+template<typename Float, typename Spectrum>
+class MTS_EXPORT_GEOMETRY SurfaceMesh : public Object {
 public:
-    using Size = size_array_t<Float>;
+    MTS_GEOMETRY_IMPORT_TYPES()
 
-    SurfaceMesh(const DynamicBuffer<Size>& polygons);
+    SurfaceMesh(){};
+    // SurfaceMesh(const DynamicBuffer<size_t>& polygons);
 
     // MTS_INLINE vertices() { return }
 
+    MTS_DECLARE_CLASS()
 protected:
-    n_faces_count;
+    // SurfaceMesh(const Properties &);
+    // virtual ~SurfaceMesh();
 
+    // size_t n_faces_count = 0;
 };
 
-}
-}
+MTS_EXTERN_CLASS_GEOMETRY(SurfaceMesh)
+NAMESPACE_END(geometry)
+NAMESPACE_END(mitsuba)
