@@ -27,9 +27,10 @@
 #  define MTS_INLINE    __attribute__((always_inline)) inline
 #endif
 
-#define MTS_MODULE_CORE   1
-#define MTS_MODULE_RENDER 2
-#define MTS_MODULE_UI     3
+#define MTS_MODULE_CORE       1
+#define MTS_MODULE_RENDER     2
+#define MTS_MODULE_GEOMETRY   3
+#define MTS_MODULE_UI         4
 
 #if MTS_BUILD_MODULE == MTS_MODULE_CORE
 #  define MTS_EXPORT_CORE MTS_EXPORT
@@ -52,6 +53,18 @@
 #    define MTS_EXTERN_RENDER
 #  else
 #    define MTS_EXTERN_RENDER extern
+#  endif
+#endif
+
+#if MTS_BUILD_MODULE == MTS_MODULE_GEOMETRY
+#  define MTS_EXPORT_GEOMETRY MTS_EXPORT
+#  define MTS_EXTERN_GEOMETRY extern
+#else
+#  define MTS_EXPORT_GEOMETRY MTS_IMPORT
+#  if defined(_MSC_VER)
+#    define MTS_EXTERN_GEOMETRY
+#  else
+#    define MTS_EXTERN_GEOMETRY extern
 #  endif
 #endif
 
