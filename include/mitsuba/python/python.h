@@ -7,6 +7,8 @@
 #include <mitsuba/mitsuba.h>
 #include <mitsuba/core/object.h>
 #include <mitsuba/render/fwd.h>
+#include <mitsuba/geometry/fwd.h>
+
 #include <pybind11/pybind11.h>
 #include <pybind11/operators.h>
 #include <pybind11/functional.h>
@@ -138,6 +140,12 @@ template <typename Type> pybind11::handle get_type_handle() {
                                                                                                    \
     MTS_IMPORT_TYPES(__VA_ARGS__)                                                                  \
     MTS_IMPORT_OBJECT_TYPES()
+
+#define MTS_PY_GEOMETRY_IMPORT_TYPES(...)                                                          \
+    using Float    = MTS_VARIANT_FLOAT;                                                            \
+    using Spectrum = MTS_VARIANT_SPECTRUM;                                                         \
+    MTS_GEOMETRY_IMPORT_TYPES(__VA_ARGS__)                                                        \
+    MTS_GEOMETRY_IMPORT_OBJECT_TYPES()                                                             
 
 template <typename Func>
 decltype(auto) vectorize(const Func &func) {
