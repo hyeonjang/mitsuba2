@@ -6,7 +6,9 @@
 MTS_PY_EXPORT(PolygonMesh) {
     MTS_PY_GEOMETRY_IMPORT_TYPES(PolygonMesh)
     MTS_PY_CLASS(PolygonMesh, Object)
+        .def(py::init<>())
         .def(py::init<const DynamicBuffer<UInt32> &, const DynamicBuffer<Float> &>())
+        .def("to_surface_mesh", &PolygonMesh::to_surface_mesh)
         ;
     //    .def_method(SurfaceMesh, clone);
         // .def_method(SurfaceMesh, clone)

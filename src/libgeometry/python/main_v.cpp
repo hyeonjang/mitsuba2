@@ -18,6 +18,7 @@ static py::object caster(Object *o) {
     // py::cast(tmp0);
 
     // PY_TRY_CAST(Sampler);
+    // PY_TRY_CAST(Halfedge);
     PY_TRY_CAST(PolygonMesh);
     PY_TRY_CAST(SurfaceMesh);
 
@@ -26,6 +27,7 @@ static py::object caster(Object *o) {
 
 // MTS_PY_DECLARE(util);
 // MTS_PY_DECLARE(surface);
+// MTS_PY_DECLARE(Halfedge);
 MTS_PY_DECLARE(PolygonMesh);
 MTS_PY_DECLARE(SurfaceMesh);
  
@@ -40,6 +42,7 @@ PYBIND11_MODULE(MODULE_NAME, m) {
     util.doc()     = "including sparsematrix";
     surface.doc()  = "Process mesh (like geometry-central)";
 
+    // MTS_PY_IMPORT(Halfedge);
     MTS_PY_IMPORT(PolygonMesh);
     MTS_PY_IMPORT(SurfaceMesh);
 

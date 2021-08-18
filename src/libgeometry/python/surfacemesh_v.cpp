@@ -5,9 +5,10 @@
 
 MTS_PY_EXPORT(SurfaceMesh) {
     MTS_PY_GEOMETRY_IMPORT_TYPES(SurfaceMesh)
-    // py::class_<SurfaceMesh>(m, "SurfaceMesh")
-        // .def(py::init<>());
-    MTS_PY_CLASS(SurfaceMesh, Object);
+    MTS_PY_CLASS(SurfaceMesh, Object)
+        .def(py::init<>())
+        .def(py::init<const DynamicBuffer<UInt32> &>())
+        ;
     //    .def_method(SurfaceMesh, clone);
         // .def_method(SurfaceMesh, clone)
         // .def_method(SurfaceMesh, sample_count)
