@@ -1,30 +1,31 @@
 #pragma once
 
+#include <mitsuba/geometry/fwd.h>
 #include <mitsuba/geometry/util/element.h>
 
 namespace mitsuba {
 namespace geometry {
 
-class SurfaceMesh;
-
-struct Vertex;
-struct Halfedge;
-struct Corner;
-
-struct Vertex : Element<SurfaceMesh, Vertex>
+template<typename Float>
+struct Vertex : Element<SurfaceMesh<Float>, Vertex<Float>>
 {
-    Vertex();
-    Vertex(SurfaceMesh* mesh, size_t index);
+    using Base = Element<SurfaceMesh<Float>, Vertex<Float>>;
+
+    Vertex(){};
+    Vertex(SurfaceMesh<Float>* mesh, size_t index):Base(mesh, index){};
 
     // Halfedge halfedge() const { return Halfedge(mesh, mesh->vHalfedge(index)); };
-    Corner corner() const;
+    // Corner corner() const;
     bool is_dead() const;
 };
 
-struct Halfedge : Element<SurfaceMesh, Halfedge>
+template<typename Float>
+struct MTS_EXPORT_GEOMETRY Halfedge : Element<SurfaceMesh<Float>, Halfedge<Float>>
 {
-    Halfedge();
-    Halfedge(SurfaceMesh* mesh, size_t index);
+    using Base = Element<SurfaceMesh<Float>, Halfedge<Float>>;
+
+    Halfedge(){};
+    Halfedge(SurfaceMesh<Float>* mesh, size_t index):Base(mesh, index){};
 
     Halfedge    next() const;
     Halfedge    twin() const;
@@ -33,20 +34,16 @@ struct Halfedge : Element<SurfaceMesh, Halfedge>
     // Face        face() const;
 };
 
-struct Corner
+template<typename Float>
+struct MTS_EXPORT_GEOMETRY Edge : Element<SurfaceMesh<Float>, Halfedge<Float>>
 {
+    using Base = Element<SurfaceMesh<Float>, Halfedge<Float>>;
+
+    Edge(){};
+    Edge(SurfaceMesh<Float>* mesh, size_t index):Base(mesh, index){};
 
 };
 
-struct Edge
-{
-
-};
-
-struct Face
-{
-
-};
 
 /////////////////////////////////////
 } // the end of namespace geometry //

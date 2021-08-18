@@ -14,6 +14,7 @@ foreach (MTS_VARIANT ${MTS_VARIANTS})
   add_mitsuba_python_library(${TARGET_NAME}
     main_v.cpp
     
+    halfedge_v.cpp
     polygonmesh_v.cpp
     surfacemesh_v.cpp
   )
