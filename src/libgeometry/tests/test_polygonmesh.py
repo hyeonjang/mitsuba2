@@ -17,7 +17,4 @@ def test01_create_polygon_mesh():
     vertices = Float([0.0, 0.0, 0.0, 1.0, 0.2, 0.0, 0.2, 1.0, 0.0])
     polygons = UInt32([0, 1, 2, 0, 1, 3])
 
-    mesh = PolygonMesh(m.faces_buffer(), m.vertex_positions_buffer())
-    mesh.to_surface_mesh()
-
-test01_create_polygon_mesh()
+    polymesh = PolygonMesh(m.faces_buffer(), m.vertex_positions_buffer())
