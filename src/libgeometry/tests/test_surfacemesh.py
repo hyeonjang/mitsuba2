@@ -21,7 +21,8 @@ def test01_basics():
     assets = MeshAsset()
     m = assets.load_mesh("ply", "assets/two_poly.ply")
     polymesh = PolygonMesh(m.faces_buffer(), m.vertex_positions_buffer())
-    polymesh.to_surface_mesh()
+    surfacemesh = polymesh.to_surface_mesh()
+    print(surfacemesh.vertices())
 
 
 test01_basics()

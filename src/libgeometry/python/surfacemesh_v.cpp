@@ -8,6 +8,10 @@ MTS_PY_EXPORT(SurfaceMesh) {
     MTS_PY_CLASS(SurfaceMesh, Object)
         .def(py::init<>())
         .def(py::init<const DynamicBuffer<UInt32> &>())
+        .def("vertices", py::overload_cast<>(&SurfaceMesh::vertices),
+            D(SurfaceMesh, vertices),
+            py::return_value_policy::reference_internal
+            )
         ;
     //    .def_method(SurfaceMesh, clone);
         // .def_method(SurfaceMesh, clone)
