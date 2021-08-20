@@ -30,6 +30,7 @@ static py::object caster(Object *o) {
 
 // MTS_PY_DECLARE(util);
 // MTS_PY_DECLARE(surface);
+MTS_PY_DECLARE(Element);
 MTS_PY_DECLARE(Halfedge);
 MTS_PY_DECLARE(Vertex);
 MTS_PY_DECLARE(Face);
@@ -48,6 +49,7 @@ PYBIND11_MODULE(MODULE_NAME, m) {
     util.doc()     = "including sparsematrix";
     surface.doc()  = "Process mesh (like geometry-central)";
 
+    MTS_PY_IMPORT(Element);
     MTS_PY_IMPORT(Halfedge);
     MTS_PY_IMPORT(Vertex);
     MTS_PY_IMPORT(Face);

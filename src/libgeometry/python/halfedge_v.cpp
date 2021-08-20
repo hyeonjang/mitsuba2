@@ -1,13 +1,27 @@
 #include <mitsuba/python/python.h>
+#include <mitsuba/geometry/util/element.h>
 #include <mitsuba/geometry/surface/halfedge.h>
 
 #include "docstr.h"
 
+// element
+MTS_PY_EXPORT(Element) {
+    MTS_PY_GEOMETRY_IMPORT_TYPES(Element, SurfaceMesh)
+    MTS_PY_STRUCT(Element)
+        .def(py::init<>())
+        .def(py::init<SurfaceMesh*, Index>())
+        .def("get_index", &Element::get_index,
+            D(Element, get_index), 
+            py::return_value_policy::reference_internal)
+        ;
+}
+
 // halfedge
 MTS_PY_EXPORT(Halfedge) {
-    MTS_PY_GEOMETRY_IMPORT_TYPES(Halfedge)
-    MTS_PY_STRUCT(Halfedge)
+    MTS_PY_GEOMETRY_IMPORT_TYPES(Halfedge, Element)
+    py::class_<Halfedge, Element>(m, "Halfedge")
         .def(py::init<>())
+        .def_repr(Halfedge)
         ;
         // .def_method(SurfaceMesh, clone)
         // .def_method(SurfaceMesh, sample_count)
@@ -22,22 +36,30 @@ MTS_PY_EXPORT(Halfedge) {
 
 // vertex
 MTS_PY_EXPORT(Vertex) {
-    MTS_PY_GEOMETRY_IMPORT_TYPES(Vertex)
-    MTS_PY_STRUCT(Vertex)
+    MTS_PY_GEOMETRY_IMPORT_TYPES(Vertex, Element)
+    py::class_<Vertex, Element>(m, "Vertex")
         .def(py::init<>())
+        .def("halfedge", vectorize(&Vertex::halfedge), D(Vertex, halfedge))
+        .def_repr(Vertex)
         ;
 }
 
+// face
 MTS_PY_EXPORT(Face) {
     MTS_PY_GEOMETRY_IMPORT_TYPES(Face)
-    MTS_PY_STRUCT(Face)
+    py::class_<Face, Element>(m, "Face")
         .def(py::init<>())
+        .def_repr(Face)
+        .def("halfedge", vectorize(&Face::halfedge), D(Face, halfedge))
         ;
 }
 
+// edge
 MTS_PY_EXPORT(Edge) {
     MTS_PY_GEOMETRY_IMPORT_TYPES(Edge)
-    MTS_PY_STRUCT(Edge)
+    py::class_<Edge, Element>(m, "Edge")
         .def(py::init<>())
+        .def_repr(Edge)
+        .def("halfedge", vectorize(&Edge::halfedge), D(Edge, halfedge))
         ;
 }
