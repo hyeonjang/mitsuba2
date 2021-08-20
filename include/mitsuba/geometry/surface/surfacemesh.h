@@ -77,9 +77,7 @@ public:
             }
         }
 
-
         // slice(he, 0) = HeStorage(Storage(0), Storage(0), Storage(0), Storage(0), Storage(0));
-
         std::cout << "v.halfedge() " << vhalfedges << std::endl;
         std::cout << "f.halfedge() " << fhalfedges << std::endl;
         std::cout << "e.halfedge() " << ehalfedges << std::endl;
@@ -127,15 +125,18 @@ public:
     MTS_INLINE Index fhalfedge(Index idx)   const { return gather<Index>(fhalfedges, idx); }
     MTS_INLINE Index ehalfedge(Index idx)   const { return gather<Index>(ehalfedges, idx); }
 
-    MTS_INLINE auto halfedges() { return Halfedge(this, he.vertex); }
+    MTS_INLINE auto halfedges() { return Halfedge(this, indices()); }
     MTS_INLINE auto vertices()  { return Vertex(this, he.vertex); }
     MTS_INLINE auto faces()     { return Face(this, he.face); }
     MTS_INLINE auto edges()     { return Edge(this, he.edge); }
 
-    MTS_INLINE auto halfedge(Index index)  { return Halfedge(this, gather<Index>(he.vertex, index)); }
-    MTS_INLINE auto vertex(Index index)    { return Vertex(this, gather<Index>(he.vertex, index)); }
-    MTS_INLINE auto face(Index index)      { return Face(this, gather<Index>(he.face, index)); }
-    MTS_INLINE auto edge(Index index)      { return Edge(this, gather<Index>(he.edge, index)); }
+    MTS_INLINE auto halfedge(Index index)  { return Halfedge(this,  gather<Index>(indices(), index)); }
+    MTS_INLINE auto vertex(Index index)    { return Vertex(this,    gather<Index>(he.vertex, index)); }
+    MTS_INLINE auto face(Index index)      { return Face(this,      gather<Index>(he.face, index)); }
+    MTS_INLINE auto edge(Index index)      { return Edge(this,      gather<Index>(he.edge, index)); }
+
+    MTS_INLINE size_t size()    const { return n_halfedges_count; }
+    MTS_INLINE Index  indices() const { return arange<Index>(size()); }
 
     std::string to_string() const {
         std::ostringstream oss;
