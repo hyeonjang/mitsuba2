@@ -1,43 +1,19 @@
 #pragma once
 
+#include <mitsuba/core/stream.h>
+#include <mitsuba/core/vector.h>
 #include <mitsuba/geometry/fwd.h>
 #include <mitsuba/geometry/util/element.h>
+#include <mitsuba/geometry/surface/surfacemesh.h>
 
 namespace mitsuba {
 namespace geometry {
 
 template<typename Float>
-struct HalfedgeStorage
+struct Halfedge : public Element<Float>
 {
-    MTS_GEOMETRY_IMPORT_TYPES();
-    using Bool = bool_array_t<Index>;
-
-    Index next;
-    Index twin;
-    Index vertex;
-    Index face;
-    Index edge;
-    Bool  orient; 
-
-    ENOKI_STRUCT(HalfedgeStorage, next, twin, vertex, face, edge, orient);
-};
-
-}
-}
-ENOKI_STRUCT_SUPPORT(mitsuba::geometry::HalfedgeStorage, next, twin, vertex, face, edge, orient);
-
-namespace mitsuba {
-namespace geometry {
-
-template<typename Float>
-struct Halfedge : public Element<Float, Halfedge<Float>, SurfaceMesh<Float>>
-{
-    using Base = Element<Float, Halfedge<Float>, SurfaceMesh<Float>>;
-    using Index = typename Base::Index;
-
-    using Vertex = typename Base::Vertex;
-    using Edge   = typename Base::Edge;
-    using Face   = typename Base::Face;
+    MTS_GEOMETRY_IMPORT_TYPES(Vertex, Face, Edge)
+    MTS_GEOMETRY_IMPORT_BASE(Element)
 
     Halfedge(){};
     Halfedge(SurfaceMesh<Float>* mesh, Index index):Base(mesh, index){};
@@ -51,46 +27,70 @@ struct Halfedge : public Element<Float, Halfedge<Float>, SurfaceMesh<Float>>
     MTS_INLINE Face     face() const;
 };
 
-template<typename Float>
-struct Vertex : public Element<Float, Vertex<Float>, SurfaceMesh<Float>>
+template <typename Float>
+std::ostream &operator<<(std::ostream &os, const Halfedge<Float> &h)
 {
-    using Base = Element<Float, Vertex<Float>, SurfaceMesh<Float>>;
-    using Index = typename Base::Index;
+    os << "Halfedge: " << h.get_index();
+    return os;
+}
+
+template<typename Float>
+struct Vertex : public Element<Float>
+{
+    MTS_GEOMETRY_IMPORT_TYPES(Halfedge, Face, Edge)
+    MTS_GEOMETRY_IMPORT_BASE(Element)
 
     Vertex(){};
     Vertex(SurfaceMesh<Float>* mesh, Index index):Base(mesh, index){};
 
-    Halfedge<Float> halfedge(Index idx) const { return Halfedge(this->m_mesh, this->m_mesh->vhalfedge(idx)); };
-
-
-    std::string t
+    Halfedge halfedge() const { return Halfedge(this->m_mesh, this->m_mesh->vhalfedge(this->m_index)); };
 };
 
-template<typename Float>
-struct Face : public Element<Float, Face<Float>, SurfaceMesh<Float>>
+template<typename Float> 
+std::ostream &operator<<(std::ostream &os, const Vertex<Float> &v) 
 {
-    using Base = Element<Float, Face<Float>, SurfaceMesh<Float>>;
-    using Index = typename Base::Index;
+    os << "Vertex: " << v.get_index();
+    return os;
+}
+
+template<typename Float>
+struct Face : public Element<Float>
+{
+    MTS_GEOMETRY_IMPORT_TYPES(Halfedge, Vertex, Edge)
+    MTS_GEOMETRY_IMPORT_BASE(Element);
 
     Face(){};
     Face(SurfaceMesh<Float>* mesh, Index index):Base(mesh, index){};
 
-    Halfedge<Float> halfedge(Index idx) const { return Halfedge(this->m_mesh, this->m_mesh->fhalfedge(idx)); };
+    Halfedge halfedge() const { return Halfedge(this->m_mesh, this->m_mesh->fhalfedge(this->m_index)); };
 };
 
 template<typename Float>
-struct Edge : Element<Float, Edge<Float>, SurfaceMesh<Float>>
+std::ostream &operator<<(std::ostream &os, const Face<Float> &f)
 {
-    using Base = Element<Float, Edge<Float>, SurfaceMesh<Float>>;
-    using Index = typename Base::Index;
+    os << "Face: " << f.get_index();
+    return os;
+}
+
+template<typename Float>
+struct Edge : public Element<Float>
+{
+    MTS_GEOMETRY_IMPORT_TYPES(Halfedge, Vertex, Face)
+    MTS_GEOMETRY_IMPORT_BASE(Element);
 
     Edge(){};
-    Edge(SurfaceMesh<Float>* mesh, size_t index):Base(mesh, index){};
+    Edge(SurfaceMesh<Float>* mesh, Index index):Base(mesh, index){};
 
-    Halfedge<Float> halfedge(Index idx) const { return Halfedge(this->m_mesh, this->m_mesh->ehalfedge(idx)); }
+    Halfedge halfedge() const { return Halfedge(this->m_mesh, this->m_mesh->ehalfedge(this->m_index)); }
 
 };
 
+template<typename Float>
+std::ostream &operator<<(std::ostream &os, const Edge<Float> &e)
+{
+    os << "Edge: " << e.get_index();
+    return os;
+}
 
 /////////////////////////////////////
 } // the end of namespace geometry //

@@ -18,29 +18,25 @@ namespace std {
 namespace mitsuba {
 namespace geometry {
 
-const size_t INVALID_INDEX = std::numeric_limits<size_t>::max();
-
 // same structure as geometry-central
-
-template<typename Float, typename T, typename M>
+template<typename Float>
 struct Element {
     // using Index = size_array_t<Float>;
-    MTS_GEOMETRY_IMPORT_TYPES()
-    using ParantMeshT = M;
+    MTS_GEOMETRY_IMPORT_TYPES(SurfaceMesh)
 
     Element(){};
-    Element(ParantMeshT* mesh, Index idx):m_mesh(mesh), m_index(idx){};
+    Element(SurfaceMesh* mesh, Index idx):m_mesh(mesh), m_index(idx){};
 
     // MTS_INLINE bool operator==() const;
     // MTS_INLINE bool operator!=() const;
 
     Index get_index() const { return m_index; }
-    ParantMeshT* get_mesh() const { return m_mesh; }
+    SurfaceMesh* get_mesh() const { return m_mesh; }
 
     bool is_dead() const;
 
 protected:
-    ParantMeshT* m_mesh = nullptr;
+    SurfaceMesh* m_mesh = nullptr;
     Index m_index;
 };
 

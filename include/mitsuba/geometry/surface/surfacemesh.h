@@ -3,6 +3,7 @@
 #include <mitsuba/core/fwd.h>
 #include <mitsuba/geometry/fwd.h>
 #include <mitsuba/geometry/surface/halfedge.h>
+#include <mitsuba/geometry/util/halfedge_storage.h>
 #include <mitsuba/geometry/util/hash_function.h>
 
 #include <unordered_map>
@@ -14,7 +15,8 @@ NAMESPACE_BEGIN(geometry)
 template<typename Float>
 class MTS_EXPORT_GEOMETRY SurfaceMesh : public Object {
 public:
-    MTS_GEOMETRY_IMPORT_TYPES()
+    MTS_GEOMETRY_IMPORT_TYPES(Halfedge, Vertex, Edge, Face)
+
     using ScalarSize = scalar_t<Index>;
     using Storage = IStorage;
     using HeStorage = HalfedgeStorage<Float>; // more thinking
@@ -35,7 +37,7 @@ public:
         n_vertices_count += scalar_cast(hmax_nested(polygons));
         n_vertices_count++;
 
-        he = empty<HeStorage>(n_halfedges_count);
+        he = zero<HeStorage>(n_halfedges_count);
 
         vhalfedges = empty<Storage>(n_vertices_count);
         fhalfedges = empty<Storage>(n_faces_count);
@@ -114,19 +116,32 @@ public:
         return Edge(this, n_edges_fill_count-1);
     }
 
-    MTS_INLINE Index henext(Index he)        const { return he.next[he]; }
-    MTS_INLINE Index hetwin(Index he)        const { return he.twin[he]; }
-    MTS_INLINE Index hevertex(Index he)      const { return he.next[he]; }
-    MTS_INLINE Index heface(Index he)        const { return he.face[he]; }
-    MTS_INLINE Index heedge(Index he)        const { return he.edge[he]; }
+    // todo
+    MTS_INLINE Index henext(Index he)      const { return he.next[he]; }
+    MTS_INLINE Index hetwin(Index he)      const { return he.twin[he]; }
+    MTS_INLINE Index hevertex(Index he)    const { return he.next[he]; }
+    MTS_INLINE Index heface(Index he)      const { return he.face[he]; }
+    MTS_INLINE Index heedge(Index he)      const { return he.edge[he]; }
 
     MTS_INLINE Index vhalfedge(Index idx)   const { return gather<Index>(vhalfedges, idx); }
     MTS_INLINE Index fhalfedge(Index idx)   const { return gather<Index>(fhalfedges, idx); }
     MTS_INLINE Index ehalfedge(Index idx)   const { return gather<Index>(ehalfedges, idx); }
 
+    MTS_INLINE auto halfedges() { return Halfedge(this, he.vertex); }
     MTS_INLINE auto vertices()  { return Vertex(this, he.vertex); }
+    MTS_INLINE auto faces()     { return Face(this, he.face); }
     MTS_INLINE auto edges()     { return Edge(this, he.edge); }
 
+    MTS_INLINE auto halfedge(Index index)  { return Halfedge(this, gather<Index>(he.vertex, index)); }
+    MTS_INLINE auto vertex(Index index)    { return Vertex(this, gather<Index>(he.vertex, index)); }
+    MTS_INLINE auto face(Index index)      { return Face(this, gather<Index>(he.face, index)); }
+    MTS_INLINE auto edge(Index index)      { return Edge(this, gather<Index>(he.edge, index)); }
+
+    std::string to_string() const {
+        std::ostringstream oss;
+        oss << "SurfaceMesh" << std::endl;
+        return oss.str();
+    }
 
 protected:
     size_t n_face_degree = 3; // more

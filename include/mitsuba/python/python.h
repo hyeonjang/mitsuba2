@@ -143,7 +143,6 @@ template <typename Type> pybind11::handle get_type_handle() {
 
 #define MTS_PY_GEOMETRY_IMPORT_TYPES(...)                                                          \
     using Float    = MTS_VARIANT_FLOAT;                                                            \
-    using Spectrum = MTS_VARIANT_SPECTRUM;                                                         \
     MTS_GEOMETRY_IMPORT_TYPES(__VA_ARGS__)                                                        \
     MTS_GEOMETRY_IMPORT_OBJECT_TYPES()                                                             
 
