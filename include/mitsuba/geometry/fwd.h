@@ -8,14 +8,14 @@
 NAMESPACE_BEGIN(mitsuba)
 
 NAMESPACE_BEGIN(geometry)
-template <typename Float, typename M, typename Derived> struct Element;
+template <typename Float> class PolygonMesh;
+template <typename Float> class SurfaceMesh;
+
+template <typename Float> struct Element;
 template <typename Float> struct Halfedge;
 template <typename Float> struct Vertex;
 template <typename Float> struct Edge;
 template <typename Float> struct Face;
-
-template <typename Float> class PolygonMesh;
-template <typename Float> class SurfaceMesh;
 NAMESPACE_END(geometry)
 
 template <typename Float_> struct GeometryAliases {
@@ -32,13 +32,14 @@ template <typename Float_> struct GeometryAliases {
     using FStorage               = mitsuba::DynamicBuffer<FloatU>; 
     using IStorage               = mitsuba::DynamicBuffer<IndexU>;
 
+    using PolygonMesh            = mitsuba::geometry::PolygonMesh<FloatU>;
+    using SurfaceMesh            = mitsuba::geometry::SurfaceMesh<FloatU>;
+
+    using Element                = mitsuba::geometry::Element<FloatU>;
     using Halfedge               = mitsuba::geometry::Halfedge<FloatU>;
     using Vertex                 = mitsuba::geometry::Vertex<FloatU>;
     using Edge                   = mitsuba::geometry::Edge<FloatU>;
     using Face                   = mitsuba::geometry::Face<FloatU>;
-
-    using PolygonMesh            = mitsuba::geometry::PolygonMesh<FloatU>;
-    using SurfaceMesh            = mitsuba::geometry::SurfaceMesh<FloatU>;
 };
 
 #define MTS_GEOMETRY_IMPORT_BASIC_TYPES()                                       \
@@ -46,11 +47,8 @@ template <typename Float_> struct GeometryAliases {
     using GeometryAliases      = mitsuba::GeometryAliases<Float>;               \
     using Index                = typename GeometryAliases::Index;               \
     using FStorage             = typename GeometryAliases::FStorage;            \
-    using IStorage             = typename GeometryAliases::IStorage;            \
-    using Halfedge             = typename GeometryAliases::Halfedge;            \
-    using Vertex               = typename GeometryAliases::Vertex;              \
-    using Edge                 = typename GeometryAliases::Edge;                \
-    using Face                 = typename GeometryAliases::Face;
+    using IStorage             = typename GeometryAliases::IStorage;            
+
 
 // This macro is needed to get this to compile across all compilers
 #define MTS_GEOMETRY_IMPORT_TYPES_HELPER(...) GeometryAliases, ##__VA_ARGS__
@@ -59,9 +57,22 @@ template <typename Float_> struct GeometryAliases {
     MTS_GEOMETRY_IMPORT_BASIC_TYPES()                                                    \
     ENOKI_USING_TYPES(MTS_GEOMETRY_IMPORT_TYPES_HELPER(__VA_ARGS__))
 
-#define MTS_GEOMETRY_IMPORT_OBJECT_TYPES()                                \
-    using PolygonMesh            = typename GeometryAliases::PolygonMesh; \
-    using SurfaceMesh            = typename GeometryAliases::SurfaceMesh;
+#define MTS_GEOMETRY_IMPORT_OBJECT_TYPES()                                      \
+    using PolygonMesh          = typename GeometryAliases::PolygonMesh;         \
+    using SurfaceMesh          = typename GeometryAliases::SurfaceMesh;         \
+    using Element              = typename GeometryAliases::Element;             \
+    using Halfedge             = typename GeometryAliases::Halfedge;            \
+    using Vertex               = typename GeometryAliases::Vertex;              \
+    using Edge                 = typename GeometryAliases::Edge;                \
+    using Face                 = typename GeometryAliases::Face;
     // -----------------------------------------------------------------------------
+
+// not clear
+#define MTS_GEOMETRY_IMPORT_BASE_HELPER(...) Base, ##__VA_ARGS__
+
+#define MTS_GEOMETRY_IMPORT_BASE(Name, ...)         \
+    using Base = Name<Float>;                       \
+    ENOKI_USING_MEMBERS(MTS_GEOMETRY_IMPORT_BASE_HELPER(__VA_ARGS__))
+
 
 NAMESPACE_END(mitsuba)
