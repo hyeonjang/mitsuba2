@@ -14,13 +14,10 @@ class MTS_EXPORT_GEOMETRY PolygonMesh : public Object
 {
 public:
     MTS_GEOMETRY_IMPORT_TYPES()
-    using Index = UInt32;
-    using IStorage = DynamicBuffer<Index>;
-    using FStorage = DynamicBuffer<Float>;
 
     template <typename Index>
     MTS_INLINE auto face_indices(Index index, mask_t<Index> active = true) const {
-        using Result = Array<replace_scalar_t<Index, uint32_t>, 3>;
+        using Result = Array<replace_scalar_t<Index, size_t>, 3>;
         return gather<Result>(m_polygons, index, active);
     }
 
@@ -32,12 +29,7 @@ public:
     
     SurfaceMesh<Float> to_surface_mesh()
     {
-        using Face = Array<UInt32, 3>;
-
-        auto n_faces_count = slices(m_polygons)/3;
-        Face polygons = face_indices(arange<UInt32>(n_faces_count));
-        SurfaceMesh<Float> mesh(polygons);
-
+        SurfaceMesh<Float> mesh(m_polygons);
         return mesh;
     }
 

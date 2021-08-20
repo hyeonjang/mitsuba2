@@ -22,28 +22,26 @@ const size_t INVALID_INDEX = std::numeric_limits<size_t>::max();
 
 // same structure as geometry-central
 
-template<typename M, typename T>
+template<typename Float, typename T, typename M>
 struct Element {
-
-public:
+    // using Index = size_array_t<Float>;
+    MTS_GEOMETRY_IMPORT_TYPES()
     using ParantMeshT = M;
 
-    Element();
-    Element(ParantMeshT* mesh, size_t idx):m_mesh(mesh), m_index(idx){};
+    Element(){};
+    Element(ParantMeshT* mesh, Index idx):m_mesh(mesh), m_index(idx){};
 
     // MTS_INLINE bool operator==() const;
     // MTS_INLINE bool operator!=() const;
 
-    size_t get_index() const { return m_index; }
+    Index get_index() const { return m_index; }
     ParantMeshT* get_mesh() const { return m_mesh; }
 
     bool is_dead() const;
 
 protected:
     ParantMeshT* m_mesh = nullptr;
-    size_t m_index;
-
-    friend struct std::hash<Element<M, T>>;
+    Index m_index;
 };
 
 /////////////////////////////////////

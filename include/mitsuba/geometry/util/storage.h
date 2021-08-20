@@ -7,11 +7,11 @@ using namespace enoki;
 namespace geometry {
 namespace internal {
 
-template<typename Scalar> 
+template<typename Value_> 
 struct Storage
 {
-    using Value = Scalar;
-    using Index = uint32_array_t<Scalar>;
+    using Value = Value_;
+    using Index = uint32_array_t<Value_>;
 
     Value value;
     Index index;
