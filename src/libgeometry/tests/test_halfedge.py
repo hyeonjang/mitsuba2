@@ -9,10 +9,37 @@ indices = surfmesh.indices()
 
 # Halfedge test
 def test_halfedge():
+    from mitsuba.geometry import Element
+
     halfedges = surfmesh.halfedges()
     halfedge = surfmesh.halfedge(indices)
+    # halfedge = surfmesh.halfedge(indices)
+    
+    print(id(halfedges.get_index()))
+    print(id(halfedge.get_index()))
 
-    assert halfedges.get_index() == halfedge.get_index()
+    # instance test
+    assert halfedge.get_index() == halfedges.get_index()
+
+    # # next() test
+    assert halfedge.get_index() == halfedge.next().next().next().get_index()
+    
+    # # twin() test
+
+    # # vertex() test
+    assert halfedges.vertex().get_index() == surfmesh.vertices().get_index()
+
+    # # headvertex() tailvertex() test
+    assert halfedges.headvertex().get_index() == halfedges.next().tailvertex().get_index()
+
+    # # face() test
+    assert halfedges.face().get_index() == surfmesh.faces().get_index()
+
+    # iter() test
+
+    # edge() test
+
+test_halfedge()
 
 # Vertex test
 def test_vertex():
@@ -20,10 +47,9 @@ def test_vertex():
     vertices = surfmesh.vertices()
     vertex = surfmesh.vertex(indices)
 
-    assert vertices.get_index() == vertex.get_index()
-    assert vertices.halfedge().get_index() == vertex.halfedge().get_index()
+    assert vertex.get_index() == vertices.get_index()
+    assert vertex.halfedge().get_index() == vertices.halfedge().get_index()
 
-test_vertex()
 
 # Face test
 def test_face():

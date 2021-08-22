@@ -10,9 +10,9 @@ MTS_PY_EXPORT(Element) {
     MTS_PY_STRUCT(Element)
         .def(py::init<>())
         .def(py::init<SurfaceMesh*, Index>())
-        .def("get_index", &Element::get_index,
-            D(Element, get_index), 
+        .def("get_index", &Element::get_index,D(Element, get_index), 
             py::return_value_policy::reference_internal)
+        .def_method(Element, test_iter)
         ;
 }
 
@@ -22,8 +22,18 @@ MTS_PY_EXPORT(Halfedge) {
     py::class_<Halfedge, Element>(m, "Halfedge")
         .def(py::init<>())
         .def_repr(Halfedge)
+        .def_method(Halfedge, next)
+        //.def_method(Halfedge, next_incoming)
+        //.def_method(Halfedge, next_outgoing)
+        .def_method(Halfedge, twin)
+        .def_method(Halfedge, vertex)
+        .def_method(Halfedge, headvertex)
+        .def_method(Halfedge, tailvertex)
+        .def_method(Halfedge, face)
+        .def_method(Halfedge, edge)
         ;
         // .def_method(SurfaceMesh, clone)
+        
         // .def_method(SurfaceMesh, sample_count)
         // .def_method(SurfaceMesh, wavefront_size)
         // .def("seed", vectorize(&SurfaceMesh::seed),

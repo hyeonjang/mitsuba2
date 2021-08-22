@@ -16,30 +16,35 @@ template <typename Float> struct Halfedge;
 template <typename Float> struct Vertex;
 template <typename Float> struct Edge;
 template <typename Float> struct Face;
+template <typename Float> struct Corner;
 NAMESPACE_END(geometry)
 
 template <typename Float_> struct GeometryAliases {
 
-    using Float                  = Float_;
-    using Index                  = size_array_t<Float>;
+    using Float                 = Float_;
+    using Index                 = size_array_t<Float>;
     // using Spectrum               = Spectrum_;
 
     /// Strip away any masking-related wrappers from 'Float' and 'Spectrum'
-    using FloatU                 = underlying_t<Float>;
-    using IndexU                 = underlying_t<Index>;
+    using FloatU                = underlying_t<Float>;
+    using IndexU                = underlying_t<Index>;
     // using SpectrumU              = underlying_t<Spectrum>;
 
-    using FStorage               = mitsuba::DynamicBuffer<FloatU>; 
-    using IStorage               = mitsuba::DynamicBuffer<IndexU>;
+    using FStorage              = mitsuba::DynamicBuffer<FloatU>; 
+    using IStorage              = mitsuba::DynamicBuffer<IndexU>;
 
-    using PolygonMesh            = mitsuba::geometry::PolygonMesh<FloatU>;
-    using SurfaceMesh            = mitsuba::geometry::SurfaceMesh<FloatU>;
+    using PolygonMesh           = mitsuba::geometry::PolygonMesh<FloatU>;
+    using SurfaceMesh           = mitsuba::geometry::SurfaceMesh<FloatU>;
 
-    using Element                = mitsuba::geometry::Element<FloatU>;
-    using Halfedge               = mitsuba::geometry::Halfedge<FloatU>;
-    using Vertex                 = mitsuba::geometry::Vertex<FloatU>;
-    using Edge                   = mitsuba::geometry::Edge<FloatU>;
-    using Face                   = mitsuba::geometry::Face<FloatU>;
+    using Element               = mitsuba::geometry::Element<FloatU>;
+    using Halfedge              = mitsuba::geometry::Halfedge<FloatU>;
+    using Vertex                = mitsuba::geometry::Vertex<FloatU>;
+    using Edge                  = mitsuba::geometry::Edge<FloatU>;
+    using Face                  = mitsuba::geometry::Face<FloatU>;
+    using Corner                = mitsuba::geometry::Corner<FloatU>;
+
+    using PolygonMeshPtr        = replace_scalar_t<Float, const PolygonMesh*>; 
+    using SurfaceMeshPtr        = replace_scalar_t<Float, const SurfaceMesh*>;
 };
 
 #define MTS_GEOMETRY_IMPORT_BASIC_TYPES()                                       \
@@ -64,7 +69,11 @@ template <typename Float_> struct GeometryAliases {
     using Halfedge             = typename GeometryAliases::Halfedge;            \
     using Vertex               = typename GeometryAliases::Vertex;              \
     using Edge                 = typename GeometryAliases::Edge;                \
-    using Face                 = typename GeometryAliases::Face;
+    using Face                 = typename GeometryAliases::Face;                \
+    using Corner               = typename GeometryAliases::Corner;              \
+    using PolygonMeshPtr       = typename GeometryAliases::PolygonMeshPtr;     \
+    using SurfaceMeshPtr       = typename GeometryAliases::SurfaceMeshPtr;     
+    
     // -----------------------------------------------------------------------------
 
 // not clear
