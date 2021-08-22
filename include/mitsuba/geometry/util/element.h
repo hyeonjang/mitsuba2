@@ -24,8 +24,8 @@ struct Element {
     // using Index = size_array_t<Float>;
     MTS_GEOMETRY_IMPORT_TYPES(SurfaceMesh)
 
-    Element(){};
-    Element(SurfaceMesh* mesh, Index idx):m_mesh(mesh), m_index(idx){};
+    // Element(){};
+    Element(SurfaceMesh* mesh, const Index& index):m_mesh(mesh), m_index(index){};
 
     // MTS_INLINE bool operator==() const;
     // MTS_INLINE bool operator!=() const;
@@ -35,9 +35,22 @@ struct Element {
 
     bool is_dead() const;
 
-protected:
+    // temporally testing function
+    Element<Float> test_iter() 
+    {
+        // Element<Float> elem;
+        // Element z = zero<Element<Float>>(10);
+    }
+
     SurfaceMesh* m_mesh = nullptr;
-    Index m_index;
+    Index        m_index;
+
+    ENOKI_STRUCT(Element, m_index);
+};
+
+struct Iterator
+{
+
 };
 
 /////////////////////////////////////
@@ -45,3 +58,4 @@ protected:
 /////////////////////////////////////
 } // the end of namespace mitsuba ///
 /////////////////////////////////////
+// ENOKI_STRUCT_SUPPORT(mitsuba::geometry::Element, m_mesh, m_index);

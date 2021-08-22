@@ -1,10 +1,22 @@
 #include <mitsuba/python/python.h>
-// halfedge features
+////////////////////////////////////////////////
+/// halfedge features
+////////////////////////////////////////////////
 static const char *__doc_mitsuba_Element = " ";
-
 static const char *__doc_mitsuba_Element_get_index = " ";
+static const char *__doc_mitsuba_Element_test_iter = " ";
 
 static const char *__doc_mitsuba_Halfedge = " ";
+
+static const char *__doc_mitsuba_Halfedge_next = " ";
+static const char *__doc_mitsuba_Halfedge_next_incoming = " ";
+static const char *__doc_mitsuba_Halfedge_next_outgoing = " ";
+static const char *__doc_mitsuba_Halfedge_twin = " ";
+static const char *__doc_mitsuba_Halfedge_vertex = " ";
+static const char *__doc_mitsuba_Halfedge_headvertex = " ";
+static const char *__doc_mitsuba_Halfedge_tailvertex = " ";
+static const char *__doc_mitsuba_Halfedge_face = " ";
+static const char *__doc_mitsuba_Halfedge_edge = " ";
 
 static const char *__doc_mitsuba_Vertex = " ";
 
@@ -17,6 +29,9 @@ static const char *__doc_mitsuba_Face_halfedge = " ";
 static const char *__doc_mitsuba_Edge = " ";
 
 static const char *__doc_mitsuba_Edge_halfedge = " ";
+////////////////////////////////////////////////
+/// the end of halfedge features
+////////////////////////////////////////////////
 
 // polygonmesh features
 static const char *__doc_mitsuba_PolygonMesh = " ";
