@@ -109,29 +109,29 @@ public:
     }
 
     // todo
-    MTS_INLINE Index henext(Index index)   const { return get(he.next, index); }
-    MTS_INLINE Index hetwin(Index index)   const { return get(he.twin, index); }
-    MTS_INLINE Index hevertex(Index index) const { return get(he.vertex, index); }
-    MTS_INLINE Index heface(Index index)   const { return get(he.face, index); }
-    MTS_INLINE Index heedge(Index index)   const { return get(he.edge, index); }
+    MTS_INLINE Index henext(const Index& index) const { return get(he.next, index); }
+    MTS_INLINE Index hetwin(const Index& index)   const { return get(he.twin, index); }
+    MTS_INLINE Index hevertex(const Index& index) const { return get(he.vertex, index); }
+    MTS_INLINE Index heface(const Index& index)   const { return get(he.face, index); }
+    MTS_INLINE Index heedge(const Index& index)   const { return get(he.edge, index); }
 
-    MTS_INLINE Index vhalfedge(Index idx)  const { return get(vhalfedges, idx); }
-    MTS_INLINE Index fhalfedge(Index idx)  const { return get(fhalfedges, idx); }
-    MTS_INLINE Index ehalfedge(Index idx)  const { return get(ehalfedges, idx); }
+    MTS_INLINE Index vhalfedge(const Index& idx)  const { return get(vhalfedges, idx); }
+    MTS_INLINE Index fhalfedge(const Index& idx)  const { return get(fhalfedges, idx); }
+    MTS_INLINE Index ehalfedge(const Index& idx)  const { return get(ehalfedges, idx); }
 
     MTS_INLINE auto halfedges() { return Halfedge(this, indices()); }
     MTS_INLINE auto vertices()  { return Vertex(this, he.vertex); }
     MTS_INLINE auto faces()     { return Face(this,     he.face); }
     MTS_INLINE auto edges()     { return Edge(this,     he.edge); }
 
-    MTS_INLINE auto halfedge(Index index)  { return Halfedge(this,  get(indices(), index)); }
-    MTS_INLINE auto vertex(Index index)    { return Vertex(this,    get(he.vertex, index)); }
-    MTS_INLINE auto face(Index index)      { return Face(this,      get(he.face, index)); }
-    MTS_INLINE auto edge(Index index)      { return Edge(this,      get(he.edge, index)); }
+    MTS_INLINE auto halfedge(const Index& index)  { return Halfedge(this,  get(indices(), index)); }
+    MTS_INLINE auto vertex(const Index& index)    { return Vertex(this,    get(he.vertex, index)); }
+    MTS_INLINE auto face(const Index& index)      { return Face(this,      get(he.face, index)); }
+    MTS_INLINE auto edge(const Index& index)      { return Edge(this,      get(he.edge, index)); }
 
     MTS_INLINE size_t size()    const { return n_halfedges_count; }
     MTS_INLINE Index  indices() const { return arange<Index>(size()); }
-    template<typename T> MTS_INLINE Index get(T arr, Index idx) const { return gather<Index>(arr, idx); } 
+    template<typename T> MTS_INLINE Index get(const T& arr, const Index& idx) const { return gather<Index>(arr, idx); } 
 
     std::string to_string() const {
         std::ostringstream oss;
@@ -174,13 +174,13 @@ NAMESPACE_END(geometry)
 NAMESPACE_END(mitsuba)
 
 // enoki support vectorize
-ENOKI_CALL_SUPPORT_TEMPLATE_BEGIN(mitsuba::geometry::SurfaceMesh)
-    ENOKI_CALL_SUPPORT_METHOD(henext)
-    ENOKI_CALL_SUPPORT_METHOD(hetwin)
-    ENOKI_CALL_SUPPORT_METHOD(hevertex)
-    ENOKI_CALL_SUPPORT_METHOD(heface)
-    ENOKI_CALL_SUPPORT_METHOD(heedge)
-    ENOKI_CALL_SUPPORT_METHOD(vhalfedge)
-    ENOKI_CALL_SUPPORT_METHOD(fhalfedge)
-    ENOKI_CALL_SUPPORT_METHOD(ehalfedge)
-ENOKI_CALL_SUPPORT_TEMPLATE_END(mitsuba::geometry::SurfaceMesh)
+// ENOKI_CALL_SUPPORT_TEMPLATE_BEGIN(mitsuba::geometry::SurfaceMesh)
+//     ENOKI_CALL_SUPPORT_METHOD(henext)
+//     ENOKI_CALL_SUPPORT_METHOD(hetwin)
+//     ENOKI_CALL_SUPPORT_METHOD(hevertex)
+//     ENOKI_CALL_SUPPORT_METHOD(heface)
+//     ENOKI_CALL_SUPPORT_METHOD(heedge)
+//     ENOKI_CALL_SUPPORT_METHOD(vhalfedge)
+//     ENOKI_CALL_SUPPORT_METHOD(fhalfedge)
+//     ENOKI_CALL_SUPPORT_METHOD(ehalfedge)
+// ENOKI_CALL_SUPPORT_TEMPLATE_END(mitsuba::geometry::SurfaceMesh)

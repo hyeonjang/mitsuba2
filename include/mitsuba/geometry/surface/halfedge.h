@@ -11,7 +11,7 @@ namespace geometry {
 
 template<typename Float>
 struct Halfedge : public Element<Float> {
-    MTS_GEOMETRY_IMPORT_TYPES(Vertex, Face, Edge, SurfaceMesh)
+    MTS_GEOMETRY_IMPORT_TYPES(Vertex, Face, Edge, SurfaceMesh, SurfaceMeshPtr)
     MTS_GEOMETRY_IMPORT_BASE(Element)
 
     Halfedge():Base(){};
@@ -52,7 +52,7 @@ std::ostream &operator<<(std::ostream &os, const Halfedge<Float> &h)
 template<typename Float>
 struct Vertex : public Element<Float>
 {
-    MTS_GEOMETRY_IMPORT_TYPES(Halfedge, Face, Edge, Corner, SurfaceMesh)
+    MTS_GEOMETRY_IMPORT_TYPES(Halfedge, Face, Edge, Corner, SurfaceMesh, SurfaceMeshPtr)
     MTS_GEOMETRY_IMPORT_BASE(Element)
 
     Vertex(){};
@@ -79,10 +79,10 @@ std::ostream &operator<<(std::ostream &os, const Vertex<Float> &v)
 template<typename Float>
 struct Face : public Element<Float>
 {
-    MTS_GEOMETRY_IMPORT_TYPES(Halfedge, Vertex, Edge, SurfaceMesh)
+    MTS_GEOMETRY_IMPORT_TYPES(Halfedge, Vertex, Edge, SurfaceMesh, SurfaceMeshPtr)
     MTS_GEOMETRY_IMPORT_BASE(Element);
 
-    Face(){};
+    Face():Base(){};
     Face(SurfaceMesh* mesh, const Index& index):Base(mesh, index){};
 
     Halfedge halfedge() const { return Halfedge(this->m_mesh, this->m_mesh->fhalfedge(this->m_index)); };
@@ -98,14 +98,13 @@ std::ostream &operator<<(std::ostream &os, const Face<Float> &f)
 template<typename Float>
 struct Edge : public Element<Float>
 {
-    MTS_GEOMETRY_IMPORT_TYPES(Halfedge, Vertex, Face, SurfaceMesh)
+    MTS_GEOMETRY_IMPORT_TYPES(Halfedge, Vertex, Face, SurfaceMesh, SurfaceMeshPtr)
     MTS_GEOMETRY_IMPORT_BASE(Element);
 
-    Edge(){};
+    Edge():Base(){};
     Edge(SurfaceMesh* mesh, const Index& index):Base(mesh, index){};
 
     Halfedge halfedge() const { return Halfedge(this->m_mesh, this->m_mesh->ehalfedge(this->m_index)); }
-
 };
 
 template<typename Float>

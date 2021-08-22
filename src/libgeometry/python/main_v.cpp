@@ -18,6 +18,7 @@ static py::object caster(Object *o) {
     // py::cast(tmp0);
 
     // PY_TRY_CAST(Sampler);
+    PY_TRY_CAST(Element); // for testing
     PY_TRY_CAST(Halfedge);
     PY_TRY_CAST(Vertex);
     PY_TRY_CAST(Face);

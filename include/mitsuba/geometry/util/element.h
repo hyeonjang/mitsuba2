@@ -43,9 +43,9 @@ struct Element {
     }
 
     SurfaceMesh* m_mesh = nullptr;
-    Index        m_index;
+    Index          m_index;
 
-    ENOKI_STRUCT(Element, m_index);
+    ENOKI_STRUCT(Element, m_mesh, m_index);
 };
 
 struct Iterator
@@ -58,4 +58,4 @@ struct Iterator
 /////////////////////////////////////
 } // the end of namespace mitsuba ///
 /////////////////////////////////////
-// ENOKI_STRUCT_SUPPORT(mitsuba::geometry::Element, m_mesh, m_index);
+ENOKI_STRUCT_SUPPORT(mitsuba::geometry::Element, m_mesh, m_index);
