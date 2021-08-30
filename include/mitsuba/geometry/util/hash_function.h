@@ -1,5 +1,7 @@
 #pragma once
 
+#include <enoki/array.h>
+
 #include <array>
 #include <tuple>
 
@@ -11,11 +13,14 @@
 // See https://stackoverflow.com/questions/7110301/generic-hash-for-tuples-in-unordered-map-unordered-set
 // and elsewhere
 
+using namespace enoki;
+
 namespace std {
 
 // Combinie hash values in a not-completely-evil way
 // (I think this is strategy boost uses)
 namespace {
+
 template <class T>
 inline void hash_combine(std::size_t& seed, T const& v) {
   seed ^= std::hash<T>()(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
@@ -37,6 +42,15 @@ struct HashValueImpl<Tuple, 0> {
 } // namespace
 
 // Hash for tuples
+template <typename T> 
+  struct hash<std::tuple<T, T>> {
+    size_t operator()(std::tuple<T, T> const& tt) const {
+      size_t seed = 0;
+      HashValueImpl<std::tuple<T, T>>::apply(seed, tt);
+      return seed;
+  }
+};
+
 template <typename... TT>
 struct hash<std::tuple<TT...>> {
   size_t operator()(std::tuple<TT...> const& tt) const {
@@ -45,7 +59,6 @@ struct hash<std::tuple<TT...>> {
     return seed;
   }
 };
-
 
 // Hash for pairs
 template <typename T, typename U>
@@ -56,4 +69,25 @@ struct hash<std::pair<T, U>> {
     return hVal;
   }
 };
+
+// Hash for enoki // @@todo
+// template <>
+// struct hash<Array>{
+//   std::size_t operator()(const Array& arr) const {
+    
+//     return 0;
+//   }
+// };
+
+template <>
+struct hash<DiffArray<CUDAArray<unsigned long>>> {
+  std::size_t operator()(const DiffArray<CUDAArray<unsigned long>>& x) const {
+    size_t seed = 0;
+    hash_combine<value_t<decltype(x)>>(seed, scalar_cast(x));
+    // HashValueImpl<DiffArray<CUDAArray<unsigned long>>>::apply(seed, x.data());
+    return seed;
+  }
+};
+
+
 }; // namespace std

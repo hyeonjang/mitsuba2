@@ -12,6 +12,8 @@ namespace geometry {
 template<typename Float>
 struct Halfedge : public Element<Float> {
     MTS_GEOMETRY_IMPORT_TYPES(Vertex, Face, Edge, SurfaceMesh, SurfaceMeshPtr)
+    
+    // make visible the parant class
     MTS_GEOMETRY_IMPORT_BASE(Element)
 
     Halfedge():Base(){};
@@ -28,6 +30,7 @@ struct Halfedge : public Element<Float> {
     MTS_INLINE Edge     edge() const { return Edge(this->m_mesh, this->m_mesh->heedge(this->m_index));}
 
     MTS_INLINE Halfedge prev_orbit_face();
+
 };
 
 // circular to face, finally indicate last one
