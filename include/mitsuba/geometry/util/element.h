@@ -3,52 +3,66 @@
 #include <mitsuba/core/struct.h>
 
 #include <functional>
+#include <iterator>
 
-namespace std {
-    template<typename Float> 
-    struct hash<mitsuba::geometry::Vertex<Float>> 
-    { 
-        std::size_t operator()(const mitsuba::geometry::Vertex<Float> e) const 
-        { 
-            return std::hash<size_t>{}(e.get_index());
-        }
-    };
-}
+// namespace std {
+//     template<typename Float> 
+//     struct hash<mitsuba::geometry::Vertex<Float>> 
+//     { 
+//         std::size_t operator()(const mitsuba::geometry::Vertex<Float> e) const 
+//         { 
+//             return std::hash<size_t>{}(e.get_index());
+//         }
+//     };
+// }
 
 namespace mitsuba {
 namespace geometry {
 
 // same structure as geometry-central
-template<typename Float>
+template <typename Float, typename Spectrum>
 struct Element {
-    // using Index = size_array_t<Float>;
     MTS_GEOMETRY_IMPORT_TYPES(SurfaceMesh)
 
-    // Element(){};
     Element(SurfaceMesh* mesh, const Index& index):m_mesh(mesh), m_index(index){};
 
-    // MTS_INLINE bool operator==() const;
-    // MTS_INLINE bool operator!=() const;
+    Mask operator==(const Element<Float, Spectrum>& other) const { return eq(m_index, other.m_index); };
+    Mask operator!=(const Element<Float, Spectrum>& other) const { return neq(m_index, other.m_index); };
 
-    Index get_index() const { return m_index; }
+    MTS_INLINE Index get_index(Mask mask=true) const 
+    {
+        MTS_MASK_ARGUMENT(mask);
+        return gather<Index>(m_index, arange<Index>(slices(m_index)), mask); 
+    }
     SurfaceMesh* get_mesh() const { return m_mesh; }
 
-    bool is_dead() const;
+    Mask is_valid() const {
+        return neq(index, math::Infinity<Index>);
+    }
 
     // temporally testing function
-    Element<Float> test_iter() 
+    Element<Float, Spectrum> test_iter() 
     {
-        // Element<Float> elem;
-        // Element z = zero<Element<Float>>(10);
+        Element<Float, Spectrum> z = zero<Element<Float, Spectrum>>(10);
+
+        // std::cout << z.m_index.begin() << std::endl;
+        // std::cout << z.m_index.end()   << std::endl;
+
+        std::cout << z.m_mesh  << std::endl; 
+        std::cout << z.m_index << std::endl;
+
+        return z;
     }
 
     SurfaceMesh* m_mesh = nullptr;
-    Index          m_index;
+    Index        m_index;
 
     ENOKI_STRUCT(Element, m_mesh, m_index);
 };
 
-struct Iterator
+//@@todo
+template <typename T>
+struct IteratorTraits
 {
 
 };

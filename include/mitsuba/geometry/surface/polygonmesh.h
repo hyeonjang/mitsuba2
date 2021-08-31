@@ -9,11 +9,13 @@ namespace geometry {
 
 // @@Todo : implement function, output is geometry and surface mesh
 // almost same as original mitsuba::mesh
-template<typename Float>
+template<typename Float, typename Spectrum>
 class MTS_EXPORT_GEOMETRY PolygonMesh : public Object
 {
 public:
     MTS_GEOMETRY_IMPORT_TYPES()
+
+    friend class SurfaceMesh<Float, Spectrum>;
 
     template <typename Index>
     MTS_INLINE auto face_indices(Index index, mask_t<Index> active = true) const {
@@ -27,9 +29,9 @@ public:
     PolygonMesh(const IStorage& polygons, const FStorage& vertices, const FStorage& normals, const FStorage& texcoords)
     :m_polygons(polygons), m_vertices_positions(vertices), m_vertices_normals(normals), m_vertices_texcoords(texcoords){}
     
-    SurfaceMesh<Float> to_surface_mesh()
+    SurfaceMesh<Float, Spectrum> to_surface_mesh()
     {
-        SurfaceMesh<Float> mesh(m_polygons);
+        auto mesh = SurfaceMesh<Float, Spectrum>(m_polygons);
         return mesh;
     }
 
@@ -45,6 +47,7 @@ protected:
     FStorage    m_vertices_positions;
     FStorage    m_vertices_normals;
     FStorage    m_vertices_texcoords;
+
 };
 
 }

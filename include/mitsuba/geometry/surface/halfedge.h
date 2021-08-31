@@ -9,8 +9,8 @@
 namespace mitsuba {
 namespace geometry {
 
-template<typename Float>
-struct Halfedge : public Element<Float> {
+template<typename Float, typename Spectrum>
+struct Halfedge : public Element<Float, Spectrum> {
     MTS_GEOMETRY_IMPORT_TYPES(Vertex, Face, Edge, SurfaceMesh, SurfaceMeshPtr)
     
     // make visible the parant class
@@ -34,8 +34,8 @@ struct Halfedge : public Element<Float> {
 };
 
 // circular to face, finally indicate last one
-template<typename Float> 
-Halfedge<Float> Halfedge<Float>::prev_orbit_face(){
+template<typename Float, typename Spectrum> 
+Halfedge<Float, Spectrum> Halfedge<Float, Spectrum>::prev_orbit_face(){
     Halfedge currHe = *this;
     while(true) {
         Halfedge nextHe = currHe.next();
@@ -45,15 +45,15 @@ Halfedge<Float> Halfedge<Float>::prev_orbit_face(){
   return currHe;
 }
 
-template <typename Float>
-std::ostream &operator<<(std::ostream &os, const Halfedge<Float> &h)
+template <typename Float, typename Spectrum>
+std::ostream &operator<<(std::ostream &os, const Halfedge<Float, Spectrum> &h)
 {
     os << "Halfedge: " << h.get_index();
     return os;
 }
 
-template<typename Float>
-struct Vertex : public Element<Float>
+template <typename Float, typename Spectrum>
+struct Vertex : public Element<Float, Spectrum>
 {
     MTS_GEOMETRY_IMPORT_TYPES(Halfedge, Face, Edge, Corner, SurfaceMesh, SurfaceMeshPtr)
     MTS_GEOMETRY_IMPORT_BASE(Element)
@@ -72,15 +72,15 @@ struct Vertex : public Element<Float>
     MTS_INLINE Corner adj_corners() const;
 };
 
-template<typename Float> 
-std::ostream &operator<<(std::ostream &os, const Vertex<Float> &v) 
+template <typename Float, typename Spectrum>
+std::ostream &operator<<(std::ostream &os, const Vertex<Float, Spectrum> &v) 
 {
     os << "Vertex: " << v.get_index();
     return os;
 }
 
-template<typename Float>
-struct Face : public Element<Float>
+template <typename Float, typename Spectrum>
+struct Face : public Element<Float, Spectrum>
 {
     MTS_GEOMETRY_IMPORT_TYPES(Halfedge, Vertex, Edge, SurfaceMesh, SurfaceMeshPtr)
     MTS_GEOMETRY_IMPORT_BASE(Element);
@@ -91,15 +91,15 @@ struct Face : public Element<Float>
     Halfedge halfedge() const { return Halfedge(this->m_mesh, this->m_mesh->fhalfedge(this->m_index)); };
 };
 
-template<typename Float>
-std::ostream &operator<<(std::ostream &os, const Face<Float> &f)
+template<typename Float, typename Spectrum>
+std::ostream &operator<<(std::ostream &os, const Face<Float, Spectrum> &f)
 {
     os << "Face: " << f.get_index();
     return os;
 }
 
-template<typename Float>
-struct Edge : public Element<Float>
+template<typename Float, typename Spectrum>
+struct Edge : public Element<Float, Spectrum>
 {
     MTS_GEOMETRY_IMPORT_TYPES(Halfedge, Vertex, Face, SurfaceMesh, SurfaceMeshPtr)
     MTS_GEOMETRY_IMPORT_BASE(Element);
@@ -110,15 +110,15 @@ struct Edge : public Element<Float>
     Halfedge halfedge() const { return Halfedge(this->m_mesh, this->m_mesh->ehalfedge(this->m_index)); }
 };
 
-template<typename Float>
-std::ostream &operator<<(std::ostream &os, const Edge<Float> &e)
+template<typename Float, typename Spectrum>
+std::ostream &operator<<(std::ostream &os, const Edge<Float, Spectrum> &e)
 {
     os << "Edge: " << e.get_index();
     return os;
 }
 
-template<typename Float>
-struct Corner : public Element<Float>
+template<typename Float, typename Spectrum>
+struct Corner : public Element<Float, Spectrum>
 {
 
 };

@@ -67,13 +67,13 @@ def write_core_config_cpp(f, enabled, default_variant):
     f.write('/// Declare that a "struct" template is to be imported and not instantiated\n')
     w('#define MTS_EXTERN_STRUCT_GEOMETRY(Name)')
     for index, (name, float_, spectrum) in enumerate(enabled):
-        w('    MTS_EXTERN_GEOMETRY template struct MTS_EXPORT_GEOMETRY Name<%s>;' % (float_))
+        w('    MTS_EXTERN_GEOMETRY template struct MTS_EXPORT_GEOMETRY Name<%s, %s>;' % (float_, spectrum))
     f.write('\n')
 
     f.write('/// Declare that a "class" template is to be imported and not instantiated\n')
     w('#define MTS_EXTERN_CLASS_GEOMETRY(Name)')
     for index, (name, float_, spectrum) in enumerate(enabled):
-        w('    MTS_EXTERN_GEOMETRY template class MTS_EXPORT_GEOMETRY Name<%s>;' % (float_))
+        w('    MTS_EXTERN_GEOMETRY template class MTS_EXPORT_GEOMETRY Name<%s, %s>;' % (float_, spectrum))
     f.write('\n')
 
     f.write('/// Explicitly instantiate all variants of a "struct" template\n')

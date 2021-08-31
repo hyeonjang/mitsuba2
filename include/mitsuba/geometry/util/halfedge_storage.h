@@ -5,7 +5,7 @@
 namespace mitsuba {
 namespace geometry {
 
-template<typename Float>
+template<typename Float, typename Spectrum>
 struct HalfedgeStorage
 {
     MTS_GEOMETRY_IMPORT_TYPES();

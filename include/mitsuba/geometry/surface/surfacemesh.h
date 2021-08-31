@@ -1,8 +1,10 @@
 #pragma once
 
 #include <mitsuba/core/fwd.h>
+#include <mitsuba/core/properties.h>
 #include <mitsuba/geometry/fwd.h>
 #include <mitsuba/geometry/surface/halfedge.h>
+#include <mitsuba/geometry/surface/polygonmesh.h>
 #include <mitsuba/geometry/util/halfedge_storage.h>
 #include <mitsuba/geometry/util/hash_function.h>
 
@@ -12,51 +14,23 @@
 NAMESPACE_BEGIN(mitsuba)
 NAMESPACE_BEGIN(geometry)
 
-template<typename Float>
+template<typename Float, typename Spectrum>
 class MTS_EXPORT_GEOMETRY SurfaceMesh : public Object {
 public:
-    MTS_GEOMETRY_IMPORT_TYPES(SurfaceMeshPtr, Halfedge, Vertex, Edge, Face)
+    MTS_GEOMETRY_IMPORT_TYPES(Halfedge, Vertex, Edge, Face)
 
     using ScalarSize = scalar_t<Index>;
-    using HeStorage  = HalfedgeStorage<Float>; // more thinking
+    using HeStorage  = HalfedgeStorage<Float, Spectrum>; // more thinking
 
+    // Constructor
+    SurfaceMesh(const IStorage& polygons);
 
-    // core
-    SurfaceMesh(const IStorage& polygons){
-        static_assert(!is_dynamic_array_v<HeStorage>, "Not a dynamic array");
-
-        // now assume that all input polyons are triangle
-        n_edges_count = n_halfedges_count = slices(polygons);
-        n_faces_count = n_edges_count/n_face_degree;
-
-        // counting the number of vertices
-        n_vertices_count += scalar_cast(hmax_nested(polygons));
-        n_vertices_count++;
-
-        // memory allocation to member variables
-        he = empty<HeStorage>(n_halfedges_count);
-        vhalfedges = empty<IStorage>(n_vertices_count);
-        fhalfedges = empty<IStorage>(n_faces_count);
-        ehalfedges = empty<IStorage>(n_edges_count);
-
-        set_halfedge_main(polygons);
-        set_halfedge_twin(polygons);
-
-        // slice(he, 0) = HeStorage(Storage(0), Storage(0), Storage(0), Storage(0), Storage(0));
-        std::cout << "v.halfedge() " << vhalfedges << std::endl;
-        std::cout << "f.halfedge() " << fhalfedges << std::endl;
-        std::cout << "e.halfedge() " << ehalfedges << std::endl;
-
-        std::cout << "he.next() "   << he.next << std::endl;
-        std::cout << "he.twin() "   << he.twin << std::endl;
-        std::cout << "he.vertex() " << he.vertex << std::endl;
-        std::cout << "he.face() "   << he.face << std::endl;
-        std::cout << "he.edge() "   << he.edge << std::endl;
-    }
-
+    // Dynamic Face degree? i don't know
     MTS_INLINE void set_halfedge_main(const IStorage& polygons) {
 
-        for(ScalarSize j=0; j<n_faces_count; j++) 
+        Log(Debug, "halfedge main construction start");
+
+        for(size_t j=0; j<n_faces_count; j++) 
         {
             Index he_idx  = new_halfedge(n_face_degree).get_index(); // danger
 
@@ -76,6 +50,27 @@ public:
         }
 
         if constexpr (is_cuda_array_v<Float>) cuda_eval();
+
+        Log(Debug, "halfedge main construction end");
+    }
+
+    MTS_INLINE void set_halfedge(const IStorage& polygons) {
+
+        auto size = n_face_degree * n_faces_count;
+        auto rang = arange<Index>(size);
+
+        auto  he_ptr = slice_ptr(he, 0); //??
+        Index he_idx = new_halfedge(size).get_index();
+
+        Index he_next = gather<Index>(he_idx, (rang+1)%n_face_degree + (he_idx/3)*3);
+        Index he_vert = gather<Index>(polygons, he_idx);
+        Index he_face = he_idx/3;
+
+        scatter(he_ptr.next,   he_next, rang);
+        scatter(he_ptr.vertex, he_vert, rang);
+        scatter(he_ptr.face,   he_face, rang);
+        scatter(vhalfedges, he_idx, he_vert);
+        scatter(fhalfedges, he_idx, he_face);
     }
 
     MTS_INLINE void set_halfedge_twin(const IStorage& polygons) {
@@ -83,11 +78,13 @@ public:
         using Bool = bool_array_t<Index>;
         using IndexSet = std::pair<Index, Index>;
 
+        Log(Debug, "halfedge twin construction start");
+
         Index ihe = 0;
         auto he_ptr = slice_ptr(he, 0);
         std::unordered_map<IndexSet, Index> edge_history;
 
-        const Index INVALID = Index(std::numeric_limits<value_t<Index>>::max()); // todo forwarding
+        const Index INVALID = math::Max<Index>; //(std::numeric_limits<value_t<Index>>::max()); // todo forwarding
         for(size_t j=0; j<n_faces_count; j++) 
         {
             Index tail = gather<Index>(polygons, arange<Index>(j*n_face_degree, (j+1)*n_face_degree));
@@ -128,10 +125,7 @@ public:
             }
         }
 
-        std::cout << he.twin << std::endl;
-
         // set halfedge twin based on edge information
-
         for(auto& entry : edge_history)
         {
             Index last = entry.second;
@@ -139,8 +133,8 @@ public:
             if (gather<Index>(he.twin, last)==INVALID) {
                 scatter(he_ptr.twin, last, last);
 
-                std::cout << gather<Index>(he.twin, last) << std::endl;
-                std::cout << "last: " << last << std::endl;
+                // std::cout << gather<Index>(he.twin, last) << std::endl;
+                // std::cout << "last: " << last << std::endl;
 
                 continue;
             }
@@ -150,14 +144,16 @@ public:
             while(gather<Index>(he.twin, curr)!=INVALID) {
                 curr = gather<Index>(he.twin, curr);
 
-                std::cout << "curr1: " << curr << std::endl;
+                // std::cout << "curr1: " << curr << std::endl;
             }
-            std::cout << "c: " << curr << std::endl;
-            std::cout << "l: " << last << std::endl;
+            // std::cout << "c: " << curr << std::endl;
+            // std::cout << "l: " << last << std::endl;
             scatter(he_ptr.twin, last, curr);
 
         }
         if constexpr (is_cuda_array_v<Float>) cuda_eval();
+
+        Log(Debug, "halfedge twin construction end");
     }
 
     void initialize_halfedge_neighbors() {
@@ -188,7 +184,7 @@ public:
     }
 
     // todo
-    MTS_INLINE Index henext(const Index& index) const { return get(he.next, index); }
+    MTS_INLINE Index henext(const Index& index)   const { return get(he.next, index); }
     MTS_INLINE Index hetwin(const Index& index)   const { return get(he.twin, index); }
     MTS_INLINE Index hevertex(const Index& index) const { return get(he.vertex, index); }
     MTS_INLINE Index heface(const Index& index)   const { return get(he.face, index); }
@@ -219,14 +215,14 @@ public:
     void compress_faces();
     void compress_edges();
 
-    std::string to_string() const {
-        std::ostringstream oss;
-        oss << "SurfaceMesh" << std::endl;
-        return oss.str();
-    }
+    virtual std::string to_string() const override;
 
+    MTS_DECLARE_CLASS();
 protected:
-    size_t n_face_degree = 3; // more
+    SurfaceMesh(const Properties &){};
+    // virtual ~SurfaceMesh(){};
+
+    size_t n_face_degree = 3; //@@todo more
 
     size_t n_halfedges_count = 0;
     size_t n_halfedges_capacity_count = 0;
@@ -251,11 +247,11 @@ protected:
     IStorage ehalfedges;
 
 public:
-    ENOKI_CALL_SUPPORT_FRIEND()
-    ENOKI_STRUCT(SurfaceMesh, he, vhalfedges, fhalfedges, ehalfedges);
+    // ENOKI_CALL_SUPPORT_FRIEND()
+    // ENOKI_STRUCT(SurfaceMesh, he, vhalfedges, fhalfedges, ehalfedges);
 };
 
-// MTS_EXTERN_CLASS_GEOMETRY(SurfaceMesh)
+MTS_EXTERN_CLASS_GEOMETRY(SurfaceMesh)
 NAMESPACE_END(geometry)
 NAMESPACE_END(mitsuba)
 

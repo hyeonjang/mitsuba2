@@ -8,40 +8,42 @@
 NAMESPACE_BEGIN(mitsuba)
 
 NAMESPACE_BEGIN(geometry)
-template <typename Float> class PolygonMesh;
-template <typename Float> class SurfaceMesh;
+// static constexpr Index INVALID    = mitsuba::math::Max<Index>; // @@tood move to where;
 
-template <typename Float> struct Element;
-template <typename Float> struct Halfedge;
-template <typename Float> struct Vertex;
-template <typename Float> struct Edge;
-template <typename Float> struct Face;
-template <typename Float> struct Corner;
+template <typename Float, typename Spectrum> class PolygonMesh;
+template <typename Float, typename Spectrum> class SurfaceMesh;
+template <typename Float, typename Spectrum> struct Element;
+template <typename Float, typename Spectrum> struct Halfedge;
+template <typename Float, typename Spectrum> struct Vertex;
+template <typename Float, typename Spectrum> struct Edge;
+template <typename Float, typename Spectrum> struct Face;
+template <typename Float, typename Spectrum> struct Corner;
 NAMESPACE_END(geometry)
 
-template <typename Float_> struct GeometryAliases {
+template <typename Float_, typename Spectrum_> struct GeometryAliases {
 
     using Float                 = Float_;
+    using Spectrum              = Spectrum_;
     using Index                 = size_array_t<Float>;
-    // using Spectrum               = Spectrum_;
 
     /// Strip away any masking-related wrappers from 'Float' and 'Spectrum'
     using FloatU                = underlying_t<Float>;
+    using SpectrumU             = underlying_t<Spectrum>;
     using IndexU                = underlying_t<Index>;
     // using SpectrumU              = underlying_t<Spectrum>;
 
-    using FStorage              = mitsuba::DynamicBuffer<FloatU>; 
-    using IStorage              = mitsuba::DynamicBuffer<IndexU>;
+    using FStorage              = mitsuba::DynamicBuffer<Float>; 
+    using IStorage              = mitsuba::DynamicBuffer<Index>;
 
-    using PolygonMesh           = mitsuba::geometry::PolygonMesh<FloatU>;
-    using SurfaceMesh           = mitsuba::geometry::SurfaceMesh<FloatU>;
+    using PolygonMesh           = mitsuba::geometry::PolygonMesh<FloatU, SpectrumU>;
+    using SurfaceMesh           = mitsuba::geometry::SurfaceMesh<FloatU, SpectrumU>;
 
-    using Element               = mitsuba::geometry::Element<FloatU>;
-    using Halfedge              = mitsuba::geometry::Halfedge<FloatU>;
-    using Vertex                = mitsuba::geometry::Vertex<FloatU>;
-    using Edge                  = mitsuba::geometry::Edge<FloatU>;
-    using Face                  = mitsuba::geometry::Face<FloatU>;
-    using Corner                = mitsuba::geometry::Corner<FloatU>;
+    using Element               = mitsuba::geometry::Element<FloatU, SpectrumU>;
+    using Halfedge              = mitsuba::geometry::Halfedge<FloatU, SpectrumU>;
+    using Vertex                = mitsuba::geometry::Vertex<FloatU, SpectrumU>;
+    using Edge                  = mitsuba::geometry::Edge<FloatU, SpectrumU>;
+    using Face                  = mitsuba::geometry::Face<FloatU, SpectrumU>;
+    using Corner                = mitsuba::geometry::Corner<FloatU, SpectrumU>;
 
     using PolygonMeshPtr        = replace_scalar_t<Float, const PolygonMesh*>; 
     using SurfaceMeshPtr        = replace_scalar_t<Float, const SurfaceMesh*>;
@@ -49,11 +51,10 @@ template <typename Float_> struct GeometryAliases {
 
 #define MTS_GEOMETRY_IMPORT_BASIC_TYPES()                                       \
     MTS_IMPORT_CORE_TYPES()                                                     \
-    using GeometryAliases      = mitsuba::GeometryAliases<Float>;               \
+    using GeometryAliases      = mitsuba::GeometryAliases<Float, Spectrum>;     \
     using Index                = typename GeometryAliases::Index;               \
     using FStorage             = typename GeometryAliases::FStorage;            \
     using IStorage             = typename GeometryAliases::IStorage;            
-
 
 // This macro is needed to get this to compile across all compilers
 #define MTS_GEOMETRY_IMPORT_TYPES_HELPER(...) GeometryAliases, ##__VA_ARGS__
@@ -80,7 +81,7 @@ template <typename Float_> struct GeometryAliases {
 #define MTS_GEOMETRY_IMPORT_BASE_HELPER(...) Base, ##__VA_ARGS__
 
 #define MTS_GEOMETRY_IMPORT_BASE(Name, ...)         \
-    using Base = Name<Float>;                       \
+    using Base = Name<Float, Spectrum>;                     \
     ENOKI_USING_MEMBERS(MTS_GEOMETRY_IMPORT_BASE_HELPER(__VA_ARGS__))
 
 

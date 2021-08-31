@@ -6,8 +6,7 @@
 MTS_PY_EXPORT(SurfaceMesh) {
     MTS_PY_GEOMETRY_IMPORT_TYPES(SurfaceMesh)
     MTS_PY_CLASS(SurfaceMesh, Object)
-        .def(py::init<>())
-        .def(py::init<const DynamicBuffer<UInt32> &>())
+        .def(py::init<const DynamicBuffer<UInt32> &>(), D(SurfaceMesh))
 
         // return set
         .def("halfedges", py::overload_cast<>(&SurfaceMesh::halfedges),
