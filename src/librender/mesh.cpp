@@ -900,6 +900,56 @@ MTS_VARIANT void Mesh<Float, Spectrum>::resize_faces_buffer(size_t size) {
     set_slices(m_faces_buf, size);
 }
 
+MTS_VARIANT void Mesh<Float, Spectrum>::update(Float vertices, UInt32 faces){
+
+    std::cout << "face area: " << face_area(arange<UInt32>(m_face_count)) << std::endl;
+
+    std::cout << m_faces_buf << std::endl;
+    // scatter(m_faces_buf, zero<UInt32>(slices(m_faces_buf)), arange<UInt32>(slices(m_faces_buf)));
+    scatter(m_faces_buf, faces, arange<UInt32>(slices(faces)));
+    m_faces_buf.managed();
+
+    cuda_eval();
+    cuda_sync();
+
+    std::cout << m_faces_buf << std::endl;
+
+    std::cout << m_vertex_positions_buf << std::endl;
+    scatter(m_vertex_positions_buf, zero<Float>(slices(m_vertex_positions_buf)), arange<UInt32>(slices(m_vertex_positions_buf)));
+    scatter(m_vertex_positions_buf, vertices, arange<UInt32>(slices(vertices)));
+    m_vertex_positions_buf.managed();
+    
+    cuda_eval();
+    cuda_sync();
+
+    std::cout << m_vertex_positions_buf << std::endl;
+
+    // std::cout << m_vertex_positions_buf.data() << std::endl;
+
+
+
+    // std::cout << "face area: " << face_area(arange<UInt32>(m_face_count)).managed() << std::endl;
+    if constexpr(is_dynamic_array_v<Float>)
+        std::cout << "face area: " << face_area(arange<UInt32>(m_face_count)).managed() << std::endl;
+
+    // cuda_sync();
+    // if (has_vertex_normals())
+        // recompute_vertex_normals();
+    std::cout << "before: " << m_area_distr << std::endl;
+
+    area_distr_build();
+
+    std::cout << "after: " << m_area_distr << std::endl;
+
+
+#if defined(MTS_ENABLE_OPTIX)
+        optix_prepare_geometry();
+#endif
+
+    Base::parameters_changed();
+}
+
+
 MTS_IMPLEMENT_CLASS_VARIANT(Mesh, Shape)
 MTS_INSTANTIATE_CLASS(Mesh)
 NAMESPACE_END(mitsuba)

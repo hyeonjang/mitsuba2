@@ -90,6 +90,9 @@ MTS_PY_EXPORT(Shape) {
              D(Mesh, ray_intersect_triangle))
 
         .def("resize_vertex_positions_buffer", &Mesh::resize_vertex_positions_buffer, "size"_a)
+
+        .def("update", &Mesh::update, "vertices"_a, "faces"_a)
+
         .def_field(Mesh, m_name, D(Mesh, m_name));
         
         // h - danger behavior 
