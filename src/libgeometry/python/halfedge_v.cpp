@@ -10,7 +10,13 @@ MTS_PY_EXPORT(Element) {
     MTS_PY_STRUCT(Element)
         .def(py::init<>())
         .def(py::init<SurfaceMesh*, Index>())
-        .def("get_index", &Element::get_index,D(Element, get_index), 
+        .def(py::self == py::self)
+        .def(py::self != py::self)
+        .def("get_index", 
+            vectorize(py::overload_cast<Mask>(&Element::get_index, py::const_)),
+            "active"_a = true, D(Element, get_index), 
+            py::return_value_policy::reference_internal)
+        .def("get_mesh", &Element::get_mesh, D(Element, get_mesh),
             py::return_value_policy::reference_internal)
         .def_method(Element, test_iter)
         ;
@@ -61,6 +67,8 @@ MTS_PY_EXPORT(Face) {
         .def(py::init<>())
         .def_repr(Face)
         .def("halfedge", vectorize(&Face::halfedge), D(Face, halfedge))
+
+        .def("adj_vertices", vectorize(&Face::adj_vertices), D(Face, adj_vertices))
         ;
 }
 

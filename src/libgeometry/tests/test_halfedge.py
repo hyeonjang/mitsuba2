@@ -15,31 +15,27 @@ def test_halfedge():
     halfedge = surfmesh.halfedge(indices)
     # halfedge = surfmesh.halfedge(indices)
     
-    print(id(halfedges.get_index()))
-    print(id(halfedge.get_index()))
-
     # instance test
-    assert halfedge.get_index() == halfedges.get_index()
+    assert halfedge == halfedges
 
-    # # next() test
-    assert halfedge.get_index() == halfedge.next().next().next().get_index()
+    # next() test
+    assert halfedge == halfedge.next().next().next()
     
-    # # twin() test
+    # twin() test
+    assert halfedge == halfedge.twin().twin()
 
-    # # vertex() test
-    assert halfedges.vertex().get_index() == surfmesh.vertices().get_index()
+    # vertex() test
+    assert halfedges.vertex() == surfmesh.vertices()
 
-    # # headvertex() tailvertex() test
-    assert halfedges.headvertex().get_index() == halfedges.next().tailvertex().get_index()
+    # headvertex() tailvertex() test
+    assert halfedges.headvertex() == halfedges.next().tailvertex()
 
-    # # face() test
-    assert halfedges.face().get_index() == surfmesh.faces().get_index()
+    # face() test
+    assert halfedges.face() == surfmesh.faces()
 
     # iter() test
 
     # edge() test
-
-test_halfedge()
 
 # Vertex test
 def test_vertex():
@@ -47,20 +43,26 @@ def test_vertex():
     vertices = surfmesh.vertices()
     vertex = surfmesh.vertex(indices)
 
-    assert vertex.get_index() == vertices.get_index()
-    assert vertex.halfedge().get_index() == vertices.halfedge().get_index()
+    # instance test
+    assert vertex == vertices
 
+    # halfedge() test
+    assert vertex.halfedge() == vertices.halfedge()
 
 # Face test
 def test_face():
     faces = surfmesh.faces()
     face = surfmesh.face(indices)
 
-    assert faces.get_index() == face.get_index()
+    assert faces == face
+
+    faces.adj_vertices()
+
+test_face()
 
 # Edge test
 def test_edge():
     edges = surfmesh.edges()
     edge = surfmesh.edge(indices)
 
-    assert edges.get_index() == edge.get_index()
+    assert ek.all(edges == edge)

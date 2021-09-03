@@ -25,20 +25,24 @@ MTS_VARIANT SurfaceMesh<Float, Spectrum>::SurfaceMesh(const IStorage& polygons) 
         set_halfedge_twin(polygons);
 
         // slice(he, 0) = HeStorage(Storage(0), Storage(0), Storage(0), Storage(0), Storage(0));
-        std::cout << "v.halfedge() " << vhalfedges << std::endl;
-        std::cout << "f.halfedge() " << fhalfedges << std::endl;
-        std::cout << "e.halfedge() " << ehalfedges << std::endl;
+        // std::cout << "v.halfedge() " << vhalfedges << std::endl;
+        // std::cout << "f.halfedge() " << fhalfedges << std::endl;
+        // std::cout << "e.halfedge() " << ehalfedges << std::endl;
 
-        std::cout << "he.next() "   << he.next << std::endl;
-        std::cout << "he.twin() "   << he.twin << std::endl;
-        std::cout << "he.vertex() " << he.vertex << std::endl;
-        std::cout << "he.face() "   << he.face << std::endl;
-        std::cout << "he.edge() "   << he.edge << std::endl;
+        // std::cout << "he.next() "   << he.next << std::endl;
+        // std::cout << "he.twin() "   << he.twin << std::endl;
+        // std::cout << "he.vertex() " << he.vertex << std::endl;
+        // std::cout << "he.face() "   << he.face << std::endl;
+        // std::cout << "he.edge() "   << he.edge << std::endl;
     }
 
+//@@todo
 MTS_VARIANT std::string SurfaceMesh<Float, Spectrum>::to_string() const {
     std::ostringstream oss;
-    oss << "SurfaceMesh" << std::endl;
+    oss << class_()->name()  << "["  << std::endl
+        << "vertices:  " << he.vertex  << std::endl
+        << "faces:     " << he.face  << std::endl
+        << "edges:     " << he.edge;
     return oss.str();
 }
 

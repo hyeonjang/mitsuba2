@@ -24,17 +24,17 @@ template <typename Float, typename Spectrum>
 struct Element {
     MTS_GEOMETRY_IMPORT_TYPES(SurfaceMesh)
 
-    Element(SurfaceMesh* mesh, const Index& index):m_mesh(mesh), m_index(index){};
+    Element(SurfaceMesh* m, const Index& i):mesh(m), index(i){};
 
-    Mask operator==(const Element<Float, Spectrum>& other) const { return eq(m_index, other.m_index); };
-    Mask operator!=(const Element<Float, Spectrum>& other) const { return neq(m_index, other.m_index); };
+    bool operator==(const Element<Float, Spectrum>& other) const { return mesh==other.mesh&&index==other.index; };
+    bool operator!=(const Element<Float, Spectrum>& other) const { return mesh!=other.mesh&&index!=other.index; };
 
     MTS_INLINE Index get_index(Mask mask=true) const 
     {
         MTS_MASK_ARGUMENT(mask);
-        return gather<Index>(m_index, arange<Index>(slices(m_index)), mask); 
+        return gather<Index>(index, arange<Index>(slices(index)), mask); 
     }
-    SurfaceMesh* get_mesh() const { return m_mesh; }
+    SurfaceMesh* get_mesh() const { return mesh; }
 
     Mask is_valid() const {
         return neq(index, math::Infinity<Index>);
@@ -48,16 +48,13 @@ struct Element {
         // std::cout << z.m_index.begin() << std::endl;
         // std::cout << z.m_index.end()   << std::endl;
 
-        std::cout << z.m_mesh  << std::endl; 
-        std::cout << z.m_index << std::endl;
-
         return z;
     }
 
-    SurfaceMesh* m_mesh = nullptr;
-    Index        m_index;
+    SurfaceMesh* mesh = nullptr;
+    Index        index;
 
-    ENOKI_STRUCT(Element, m_mesh, m_index);
+    ENOKI_STRUCT(Element, mesh, index);
 };
 
 //@@todo
@@ -72,4 +69,4 @@ struct IteratorTraits
 /////////////////////////////////////
 } // the end of namespace mitsuba ///
 /////////////////////////////////////
-ENOKI_STRUCT_SUPPORT(mitsuba::geometry::Element, m_mesh, m_index);
+ENOKI_STRUCT_SUPPORT(mitsuba::geometry::Element, mesh, index);

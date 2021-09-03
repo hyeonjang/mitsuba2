@@ -4,6 +4,7 @@
 ////////////////////////////////////////////////
 static const char *__doc_mitsuba_Element = " ";
 static const char *__doc_mitsuba_Element_get_index = " ";
+static const char *__doc_mitsuba_Element_get_mesh = " ";
 static const char *__doc_mitsuba_Element_test_iter = " ";
 
 static const char *__doc_mitsuba_Halfedge = " ";
@@ -23,8 +24,8 @@ static const char *__doc_mitsuba_Vertex = " ";
 static const char *__doc_mitsuba_Vertex_halfedge = " ";
 
 static const char *__doc_mitsuba_Face = " ";
-
 static const char *__doc_mitsuba_Face_halfedge = " ";
+static const char *__doc_mitsuba_Face_adj_vertices = " ";
 
 static const char *__doc_mitsuba_Edge = " ";
 

@@ -42,6 +42,14 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "^(GNU)$")
   target_link_libraries(mitsuba-geometry PRIVATE -Wl,--no-undefined)
 endif()
 
+macro (add_file DST SRC)
+  set(OUTPUT_FILE ${CMAKE_BINARY_DIR}/dist/${DST})
+  add_custom_command(
+    OUTPUT ${OUTPUT_FILE} DEPENDS ${SRC} ${ARGN}
+    COMMAND ${CMAKE_COMMAND} -E copy ${SRC} ${OUTPUT_FILE})
+  list(APPEND MITSUBA_DIST_OUT ${OUTPUT_FILE})
+endmacro()
+
 # Copy to 'dist' directory
 add_dist(mitsuba-geometry)
 

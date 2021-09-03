@@ -20,18 +20,26 @@ def test01_basics():
 
     assets = MeshAsset()
     m = assets.load_mesh("ply", "assets/two_poly.ply")
+    m0 = assets.load_mesh("ply", "assets/bob_small.ply")
+
     polymesh = PolygonMesh(m.faces_buffer(), m.vertex_positions_buffer())
     surfmesh = polymesh.to_surface_mesh()
 
+    print(surfmesh)
+
+    # print()
+    # print()
+
     # print(surfmesh.halfedges())
-    print(surfmesh.vertices())
-    print(surfmesh.faces())
-    print(surfmesh.edges())
+    # print(surfmesh.halfedges().next())
+    # print(surfmesh.vertices())
+    # print(surfmesh.faces())
+    # print(surfmesh.edges())
 
-    vertex = surfmesh.vertex([0, 1, 2, 3, 4, 5])
-    face = surfmesh.face([0, 1, 2, 3, 4, 5])
+    # vertex = surfmesh.vertices()
+    # face = surfmesh.faces()
 
-    print(vertex.halfedge())
-    print(face.halfedge())
+    # print(vertex.halfedge())
+    # print(face.halfedge())
 
 test01_basics()

@@ -19,7 +19,6 @@ class MTS_EXPORT_GEOMETRY SurfaceMesh : public Object {
 public:
     MTS_GEOMETRY_IMPORT_TYPES(Halfedge, Vertex, Edge, Face)
 
-    using ScalarSize = scalar_t<Index>;
     using HeStorage  = HalfedgeStorage<Float, Spectrum>; // more thinking
 
     // Constructor
@@ -37,7 +36,7 @@ public:
             // very unclear
             Index he_next = (gather<Index>(he_idx, arange<Index>(n_face_degree))+1)%n_face_degree+n_face_degree*j;
             Index he_vert = gather<Index>(polygons, he_idx);
-            Index he_face = he_idx/3;//;gather<Index>(he_idx, he_idx)/n_face_degree;
+            Index he_face = he_idx/n_face_degree;//;gather<Index>(he_idx, he_idx)/n_face_degree;
 
             size_t idx = j*n_face_degree;
             auto he_ptr = slice_ptr(he, idx);
@@ -140,7 +139,7 @@ public:
             }
 
             Index curr = last;
-            std::cout << "curr0: " << curr << std::endl;
+            // std::cout << "curr0: " << curr << std::endl;
             while(gather<Index>(he.twin, curr)!=INVALID) {
                 curr = gather<Index>(he.twin, curr);
 

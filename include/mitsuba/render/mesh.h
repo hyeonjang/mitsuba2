@@ -253,6 +253,9 @@ public:
     void resize_vertex_positions_buffer(size_t size);
     void resize_faces_buffer(size_t size);
 
+    void update(Float vertices, UInt32 faces);
+    // void update(Vector3f vertices, Vector3u faces);
+
 protected:
     Mesh(const Properties &);
     inline Mesh() { m_mesh = true; }
