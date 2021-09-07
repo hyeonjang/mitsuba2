@@ -213,9 +213,13 @@ struct OptixBuildInputInstanceArray {
 
 struct OptixBuildInput {
     int type;
-    union {
+    union
+    {
+        /// Triangle inputs.
         OptixBuildInputTriangleArray triangleArray;
-        OptixBuildInputCustomPrimitiveArray aabbArray;
+        /// Custom primitive inputs.
+        OptixBuildInputCustomPrimitiveArray customPrimitiveArray;
+        /// Instance and instance pointer inputs.
         OptixBuildInputInstanceArray instanceArray;
         char pad[1024];
     };
